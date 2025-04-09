@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "stdio.h": "c",
+        "debug.h": "c",
+        "cstddef": "c",
+        "memory": "c",
+        "xmemory": "c",
+        "xutility": "c",
+        "value.h": "c",
+        "memory.h": "c",
+        "chunk.h": "c",
+        "common.h": "c",
+        "stdlib.h": "c"
+    }
+}
