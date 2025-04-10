@@ -12,16 +12,24 @@ typedef enum
 
 typedef struct
 {
+    int line;
+    uint8_t count;
+} Line;
+typedef struct
+{
     int count;
     int capacity;
     uint8_t *code;
-    int *lines;
+    int lineCount;
+    int lineCapacity;
+    Line *lines;
     ValueArray constants;
 } Chunk;
 
 void initChunk(Chunk *chunk);
 void freeChunk(Chunk *chunk);
 void writeChunk(Chunk *chunk, uint8_t byte, int line);
+int getLine(Chunk *chunk, int index);
 int addConstant(Chunk *chunk, Value value);
 
 #endif
