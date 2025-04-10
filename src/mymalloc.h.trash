@@ -1,0 +1,52 @@
+#ifndef clox_mymalloc_h
+#define clox_mymalloc_h
+#include <stddef.h>  
+
+#define META_SIZE sizeof(struct block_meta)
+
+/*
+    It stores:
+    next block
+    size
+    free flag
+*/
+typedef struct block_meta
+{
+    size_t size;
+    struct block_meta *next;
+    int free;
+} block_meta;
+
+/*
+   takes a double pointer to a block_meta that at the end, should be last node at the lsit.
+   and size, that indicates the minimum size of the block.
+*/
+block_meta *find_free_block(block_meta **last, size_t size);
+
+void initMemory();
+void freeMemory();
+
+/*
+1. Finds a free block with enough space, if it find out it
+set it ass occupied and then returns that block.
+2. If there isn't available a free block. It add a new block
+with enough space at the end of memory (global chunk).
+3. If it's the first call, points the head of the list to the
+recently create block, else point the last node to the block.
+4. Mark as occupied the new block, set the size to null and returns it.
+*/
+block_meta *request_block(size_t size);
+
+void *mymalloc(size_t size);
+void *myfree(void *ptr);
+
+/*
+If the pointer to reallocate is null, works like malloc.
+If the given size is bigger than the prior size, it allocates a bigger block
+and copies all data from the original block to the new block.
+if the given size it's smallet than the prior size, it allocates a smaller block
+and copies just the data that fits into the smaller block.
+*/
+void *myrealloc(void *ptr, size_t size);
+
+#endif

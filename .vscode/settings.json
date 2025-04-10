@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.json": "jsonc",
         "stdio.h": "c",
         "debug.h": "c",
         "cstddef": "c",
@@ -10,6 +11,9 @@
         "memory.h": "c",
         "chunk.h": "c",
         "common.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "cerrno": "c",
+        "mymalloc.h": "c",
+        "stddef.h": "c"
     }
 }
