@@ -78,3 +78,11 @@ https://medium.com/@andrestc/implementing-malloc-and-free-ba7e7704a473
 
 
 https://tharikasblogs.blogspot.com/p/how-to-write-your-own-malloc-and-free.html
+
+#### 15 . 1 An Instruction Execution Machine
+
+The choice to have a static VM instance is a concession for the book, but not necessarily a sound engineering choice for a real language implementation. If you’re building a VM that’s designed to be embedded in other host applications, it gives the host more flexibility if you do explicitly take a VM pointer and pass it around.
+
+That way, the host app can control when and where memory for the VM is allocated, run multiple VMs in parallel, etc.
+
+What I’m doing here is a global variable, and everything bad you’ve heard about global variables is still true when programming in the large. But when keeping things small for a book . . . 
