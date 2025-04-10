@@ -56,15 +56,16 @@ static int constantInstruction(const char *name, Chunk *chunk, int offset)
     return offset + 2;
 }
 
-static int constantLongInstruction(const char *name, Chunk *chunk, int offset) {
-  uint8_t by1 = chunk->code[offset + 1];
-  uint8_t by2 = chunk->code[offset + 2];
-  uint8_t by3 = chunk->code[offset + 3];
-  
-  int constant = (by1 << 16) | (by2 << 8) | by3;
+static int constantLongInstruction(const char *name, Chunk *chunk, int offset)
+{
+    uint8_t by1 = chunk->code[offset + 1];
+    uint8_t by2 = chunk->code[offset + 2];
+    uint8_t by3 = chunk->code[offset + 3];
 
-  printf("%-16s %4d '", name, constant);
-  printValue(chunk->constants.values[constant]);
-  printf("'\n");
-  return offset + 4;
+    int constant = (by1 << 16) | (by2 << 8) | by3;
+
+    printf("%-16s %4d '", name, constant);
+    printValue(chunk->constants.values[constant]);
+    printf("'\n");
+    return offset + 4;
 }

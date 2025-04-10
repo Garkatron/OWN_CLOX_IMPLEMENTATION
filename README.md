@@ -86,3 +86,6 @@ The choice to have a static VM instance is a concession for the book, but not ne
 That way, the host app can control when and where memory for the VM is allocated, run multiple VMs in parallel, etc.
 
 What I’m doing here is a global variable, and everything bad you’ve heard about global variables is still true when programming in the large. But when keeping things small for a book . . . 
+
+#### 15 . 2 A Value Stack ManipulatorIn 
+https://craftinginterpreters.com/a-virtual-machine.html#:~:text=A%20Value%20Stack%20Manipulator
