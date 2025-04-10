@@ -1,0 +1,105 @@
+#include "mymalloc.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <stdint.h>
+
+#define MINREQ 0x20000
+
+void *memory = NULL;      // Global memblock
+size_t endpos = 0;        // Final pos of current memblock
+void *first_block = NULL; // Frist block of all
+
+// Returns the first free block of memory
+block_meta *find_free_block(block_meta **last, size_t size)
+{
+    block_meta *current = first_block;
+    while (current && !(current->free && current->size >= size))
+    {
+        *last = current;
+        current = current->next;
+    }
+    return current;
+}
+
+void initMemory()
+{
+    size_t required = PTRDIFF_MAX;
+    while (memory == NULL)
+    {
+        memory = malloc(required);
+        if (required < MINREQ)
+        {
+            if (memory)
+            {
+                free(memory);
+            }
+            printf("Cannot allocate enough memory\n");
+            exit(ENOMEM);
+        }
+    }
+    required >>= 1;
+}
+void freeMemory()
+{
+    free(memory);
+}
+
+
+block_meta *request_block(size_t size)
+{
+    block_meta *last = NULL;
+    block_meta *block = find_free_block(&last, size);
+    if (block)
+    {
+        block->free = 0; // Not free
+        return block;
+    }
+    // Append new block to the list
+    block = &memory + endpos;
+    endpos += META_SIZE + size;
+    if (last)
+    {
+        last->next = block;
+    }
+    else
+    {
+        first_block = block;
+    }
+    block->free = 0;
+    block->next = NULL;
+    block->size = size;
+    return block;
+}
+
+void *mymalloc(size_t size)
+{
+    block_meta *block = request_block(size);
+    return block + 1;
+}
+void *myfree(void *ptr)
+{
+    block_meta *block = &ptr - META_SIZE;
+    block->free = 1;
+}
+
+void *myrealloc(void *ptr, size_t size)
+{
+    if (!ptr)
+    {
+        return mymalloc(size);
+    }
+    block_meta *block = (block_meta *)((uint8_t *)ptr - META_SIZE);
+    if (block->size >= size)
+    {
+        return block + 1;
+    }
+    uint8_t *newptr = mymalloc(size);
+    size_t i;
+    for (i = 0; i < (block->size < size ? block->size : size); i++)
+    {
+        newptr[i] = ((uint8_t *)ptr)[i];
+    }
+    block->free=1;
+    return newptr;
+}
