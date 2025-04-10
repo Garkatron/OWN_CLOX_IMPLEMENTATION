@@ -14,7 +14,7 @@ int disassembleInstruction(Chunk *chunk, int offset)
 {
     printf("%04d ", offset);
 
-    if (offset > 0 && chunk->lines[offset] == chunk->lines[offset - 1])
+    if (offset > 0 && chunk->lines[offset].line == chunk->lines[offset - 1].line)
     {
         printf("  | ");
     }
@@ -31,6 +31,9 @@ int disassembleInstruction(Chunk *chunk, int offset)
 
     case OP_CONSTANT:
         return constantInstruction("OP_CONSTANT", chunk, offset);
+
+    case OP_CONSTANT_LONG:
+        return constantLongInstruction("OP_CONSTANT_LONG", chunk, offset);
 
     default:
         printf("Unknown opcode %d\n", instruction);
@@ -51,4 +54,17 @@ static int constantInstruction(const char *name, Chunk *chunk, int offset)
     printValue(chunk->constants.values[constant]);
     printf("'\n");
     return offset + 2;
+}
+
+static int constantLongInstruction(const char *name, Chunk *chunk, int offset) {
+  uint8_t by1 = chunk->code[offset + 1];
+  uint8_t by2 = chunk->code[offset + 2];
+  uint8_t by3 = chunk->code[offset + 3];
+  
+  int constant = (by1 << 16) | (by2 << 8) | by3;
+
+  printf("%-16s %4d '", name, constant);
+  printValue(chunk->constants.values[constant]);
+  printf("'\n");
+  return offset + 4;
 }

@@ -65,3 +65,14 @@ Each OPCODE has its own operands and its hown format.
 In jlox line info lives in tokens, in clox lives in an array in the code chunks. Inneficient but easy.
 
 #### Value arrays
+
+
+#### Challenges
+
+3. How works reallocate(), malloc() and free();
+https://medium.com/@andrestc/implementing-malloc-and-free-ba7e7704a473
+
+
+https://tharikasblogs.blogspot.com/p/how-to-write-your-own-malloc-and-free.html
+
+https://mliezun.github.io/2020/04/11/custom-malloc.html

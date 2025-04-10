@@ -35,13 +35,26 @@ void writeChunk(Chunk *chunk, uint8_t byte, int line)
         {
             int oldCapacity = chunk->lineCapacity;
             chunk->lineCapacity = GROW_CAPACITY(oldCapacity);
-            chunk->lines = GROW_ARRAY(Line, chunk->lines, oldCapacity, chunk->lineCapacity);
+            chunk->lines = GROW_ARRAY(LineInfo, chunk->lines, oldCapacity, chunk->lineCapacity);
         }
 
-        Line l = {line, 1};
+        LineInfo l = {line, 1};
         chunk->lines[chunk->lineCount] = l;
     }
     chunk->count++;
+}
+
+void writeConstant(Chunk *chunk, Value value, int line) {
+    int constIndex = addConstant(chunk, value);
+    if (constIndex < 256) {
+        writeChunk(chunk, OP_CONSTANT, line);
+        writeChunk(chunk, constIndex, line);
+    } else {
+        writeChunk(chunk, OP_CONSTANT_LONG, line);
+        writeChunk(chunk, (constIndex >> 16) & 0XFF, line);
+        writeChunk(chunk, (constIndex >> 8) & 0XFF, line);
+        writeChunk(chunk, constIndex & 0XFF, line);
+    }
 }
 
 int addConstant(Chunk *chunk, Value value)
