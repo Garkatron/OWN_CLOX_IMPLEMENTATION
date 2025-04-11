@@ -5,32 +5,6 @@
 
 VM vm;
 
-void initVM()
-{
-    resetStack();
-}
-void freeVM()
-{
-}
-
-void push(Value value)
-{
-    *vm.stackTop = value;
-    vm.stackTop++;
-}
-
-Value pop()
-{
-    vm.stackTop--;
-    return *vm.stackTop;
-}
-
-InterpretResult interpret(Chunk *chunk)
-{
-    vm.chunk = chunk;
-    vm.ip = vm.chunk->code;
-}
-
 // The beating hearth of the VM...
 // The most performance cost stuff occurs here.
 // If you want to learn some of these techniques, look up “direct threaded code”, “jump table”, and “computed goto”.
@@ -76,6 +50,9 @@ static InterpretResult run()
             push(constant);
             break;
         }
+        case OP_NEGATE:
+            push(-pop());
+            break;
 
 #undef READ_BYTE
 #undef READ_CONSTANT
@@ -86,4 +63,31 @@ static InterpretResult run()
 static void resetStack()
 {
     vm.stackTop = vm.stack;
+}
+
+void initVM()
+{
+    resetStack();
+}
+void freeVM()
+{
+}
+
+void push(Value value)
+{
+    *vm.stackTop = value;
+    vm.stackTop++;
+}
+
+Value pop()
+{
+    vm.stackTop--;
+    return *vm.stackTop;
+}
+
+InterpretResult interpret(Chunk *chunk)
+{
+    vm.chunk = chunk;
+    vm.ip = vm.chunk->code;
+    return run();
 }

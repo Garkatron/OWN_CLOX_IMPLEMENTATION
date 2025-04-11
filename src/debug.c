@@ -2,6 +2,35 @@
 #include "debug.h"
 #include "value.h"
 
+static int simpleInstruction(const char *name, int offset)
+{
+    printf("%s\n", name);
+    return offset + 1;
+}
+
+static int constantInstruction(const char *name, Chunk *chunk, int offset)
+{
+    uint8_t constant = chunk->code[offset + 1];
+    printf("%-16s %4d '", name, constant);
+    printValue(chunk->constants.values[constant]);
+    printf("'\n");
+    return offset + 2;
+}
+
+static int constantLongInstruction(const char *name, Chunk *chunk, int offset)
+{
+    uint8_t by1 = chunk->code[offset + 1];
+    uint8_t by2 = chunk->code[offset + 2];
+    uint8_t by3 = chunk->code[offset + 3];
+
+    int constant = (by1 << 16) | (by2 << 8) | by3;
+
+    printf("%-16s %4d '", name, constant);
+    printValue(chunk->constants.values[constant]);
+    printf("'\n");
+    return offset + 4;
+}
+
 void disassembleChunk(Chunk *chunk, const char *name)
 {
     printf("<-----------{ %s }----------->\n", name);
@@ -35,37 +64,11 @@ int disassembleInstruction(Chunk *chunk, int offset)
     case OP_CONSTANT_LONG:
         return constantLongInstruction("OP_CONSTANT_LONG", chunk, offset);
 
+    case OP_NEGATE:
+        return simpleInstruction("OP_NEGATE", offset);
+
     default:
         printf("Unknown opcode %d\n", instruction);
         return offset + 1;
     }
-}
-
-static int simpleInstruction(const char *name, int offset)
-{
-    printf("%s\n", name);
-    return offset + 1;
-}
-
-static int constantInstruction(const char *name, Chunk *chunk, int offset)
-{
-    uint8_t constant = chunk->code[offset + 1];
-    printf("%-16s %4d '", name, constant);
-    printValue(chunk->constants.values[constant]);
-    printf("'\n");
-    return offset + 2;
-}
-
-static int constantLongInstruction(const char *name, Chunk *chunk, int offset)
-{
-    uint8_t by1 = chunk->code[offset + 1];
-    uint8_t by2 = chunk->code[offset + 2];
-    uint8_t by3 = chunk->code[offset + 3];
-
-    int constant = (by1 << 16) | (by2 << 8) | by3;
-
-    printf("%-16s %4d '", name, constant);
-    printValue(chunk->constants.values[constant]);
-    printf("'\n");
-    return offset + 4;
 }

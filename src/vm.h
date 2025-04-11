@@ -9,8 +9,8 @@ typedef struct
 {
     Chunk *chunk;
     uint8_t *ip;
-    Value stack[STACK_MAX];
-    Value *stackTop; // Points just past the last item
+    Value stack[STACK_MAX]; // LIFO PILE
+    Value *stackTop;        // Points just past the last item
 } VM;
 
 typedef enum
