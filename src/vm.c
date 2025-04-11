@@ -2,6 +2,7 @@
 #include "vm.h"
 #include "common.h"
 #include "debug.h"
+#include "memory.h"
 
 VM vm;
 
@@ -53,12 +54,17 @@ static InterpretResult run()
         }
         case OP_CONSTANT_LONG:
         {
-            Value constant = READ_CONSTANT();
+            uint8_t byte1 = READ_BYTE();
+            uint8_t byte2 = READ_BYTE();
+            uint8_t byte3 = READ_BYTE();
+            int index = (byte1 << 16) | (byte2 << 8) | byte3;
+            Value constant = vm.chunk->constants.values[index];
             push(constant);
             break;
         }
+
         case OP_NEGATE:
-            push(-pop());
+            modifyCurrent(-getCurrent());
             break;
         case OP_ADD:
             BINARY_OP(+);
@@ -83,26 +89,61 @@ static InterpretResult run()
 static void resetStack()
 {
     vm.stackTop = vm.stack;
+    vm.stackCapacity = STACK_MAX;
+    vm.stackCount = 0;
 }
 
 void initVM()
 {
+    vm.stackCapacity = STACK_MAX;
+    vm.stackCount = 0;
     resetStack();
 }
 void freeVM()
 {
+    free(vm.stack);  // Free mem
+    vm.stack = NULL; // Avoid old info (Safe)
+    vm.stackCapacity = 0;
+    vm.stackCount = 0;
 }
 
 void push(Value value)
 {
+    vm.stackCount++;
+    if (vm.stackCount > vm.stackCapacity)
+    {
+        int oldCount = vm.stackCapacity;
+        vm.stackCapacity = GROW_CAPACITY(vm.stackCapacity);
+        vm.stack = GROW_ARRAY(Value, &vm.stack, oldCount, vm.stackCount);
+    }
     *vm.stackTop = value;
     vm.stackTop++;
 }
 
 Value pop()
 {
+    if (vm.stackTop == vm.stack)
+    {
+        fprintf(stderr, "Runtime error: Stack underflow.\n");
+        exit(1);
+    }
     vm.stackTop--;
     return *vm.stackTop;
+}
+
+Value getCurrent()
+{
+    if (vm.stackTop == vm.stack)
+    {
+        fprintf(stderr, "Runtime error: Stack underflow.\n");
+        exit(1);
+    }
+    return *(vm.stackTop-1);
+}
+
+void modifyCurrent(Value value) {
+    Value *current = vm.stackTop-1;
+    *current = value;
 }
 
 InterpretResult interpret(Chunk *chunk)

@@ -89,3 +89,39 @@ What I’m doing here is a global variable, and everything bad you’ve heard ab
 
 #### 15 . 2 A Value Stack ManipulatorIn 
 https://craftinginterpreters.com/a-virtual-machine.html#:~:text=A%20Value%20Stack%20Manipulator
+
+#### Challenges
+1.What bytecode instruction sequences would you generate for the following expressions:
+
+```c
+ // .1
+
+   // 3 + 2 * 1
+
+   // 3
+   writeConstant(&chunk, 3, 0);
+
+   // 2
+   writeConstant(&chunk, 2, 0);
+
+   // 1
+   writeConstant(&chunk, 1, 0);
+
+   // *
+   writeChunk(&chunk, OP_MULTIPLY, 0);
+
+   // +
+   writeChunk(&chunk, OP_ADD, 0);
+
+   // return
+   writeChunk(&chunk, OP_RETURN, 0);
+```
+
+2.If we really wanted a minimal instruction set, we could eliminate either OP_NEGATE or OP_SUBTRACT. Show the bytecode instruction sequence you would generate for:
+
+
+To substract a number we could negate the number and the add to the other number.
+
+To negate a number without negate we could substract the double of the current amount
+
+####

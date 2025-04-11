@@ -10,6 +10,9 @@ int main(int argc, const char *argv[])
    Chunk chunk;
    initChunk(&chunk);
 
+
+   // .1
+
    // 3 + 2 * 1
 
    // 3
@@ -29,6 +32,11 @@ int main(int argc, const char *argv[])
 
    // return
    writeChunk(&chunk, OP_RETURN, 0);
+
+   // --------------------------------
+
+   // .2
+   
 
    // Imprimir el Chunk
    disassembleChunk(&chunk, "test chunk");
