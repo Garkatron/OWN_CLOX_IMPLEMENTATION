@@ -15,9 +15,16 @@ static InterpretResult run()
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()]) // Next byte from bytecode
     for (;;)
     {
+#define BINARY_OP(op)     \
+    do                    \
+    {                     \
+        double b = pop(); \
+        double a = pop(); \
+        push(a op b);     \
+    } while (false)
 
 #ifdef DEBUG_TRACE_EXECUTION
-        printf("                ");
+        printf("                                          ");
         for (Value *slot = vm.stack; slot < vm.stackTop; slot++)
         {
             printf("[ ");
@@ -53,9 +60,22 @@ static InterpretResult run()
         case OP_NEGATE:
             push(-pop());
             break;
+        case OP_ADD:
+            BINARY_OP(+);
+            break;
+        case OP_SUBTRACT:
+            BINARY_OP(-);
+            break;
+        case OP_MULTIPLY:
+            BINARY_OP(*);
+            break;
+        case OP_DIVIDE:
+            BINARY_OP(/);
+            break;
 
 #undef READ_BYTE
 #undef READ_CONSTANT
+#undef BINARY_OP
         }
     }
 }
@@ -87,6 +107,8 @@ Value pop()
 
 InterpretResult interpret(Chunk *chunk)
 {
+    printf("\n");
+    printf("<-----------{ Interpreting }----------->\n");
     vm.chunk = chunk;
     vm.ip = vm.chunk->code;
     return run();

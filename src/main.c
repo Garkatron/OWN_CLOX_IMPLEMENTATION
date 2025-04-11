@@ -10,12 +10,25 @@ int main(int argc, const char *argv[])
    Chunk chunk;
    initChunk(&chunk);
 
-   int constant = addConstant(&chunk, 1000);
+   // 3 + 2 * 1
 
-   writeConstant(&chunk, 1.0, 1);
-   // writeConstant(&chunk, 1000, 2);
-   writeChunk(&chunk, OP_NEGATE, 3);
-   writeChunk(&chunk, OP_RETURN, 4);
+   // 3
+   writeConstant(&chunk, 3, 0);
+
+   // 2
+   writeConstant(&chunk, 2, 0);
+
+   // 1
+   writeConstant(&chunk, 1, 0);
+
+   // *
+   writeChunk(&chunk, OP_MULTIPLY, 0);
+
+   // +
+   writeChunk(&chunk, OP_ADD, 0);
+
+   // return
+   writeChunk(&chunk, OP_RETURN, 0);
 
    // Imprimir el Chunk
    disassembleChunk(&chunk, "test chunk");
