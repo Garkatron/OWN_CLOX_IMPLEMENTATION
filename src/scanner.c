@@ -22,11 +22,15 @@ void initScanner(const char *source)
 
 Token scanToken()
 {
+    skipWhitespace();
     scanner.start = scanner.current;
     if (isAtEnd())
         return makeToken(TOKEN_EOF);
-
     char c = advance();
+    if (isAlpha(c))
+        return identifier();
+    if (isDigit(c))
+        return number();
     switch (c)
     {
     case '(':
@@ -58,15 +62,47 @@ Token scanToken()
         return makeToken(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
     case '>':
         return makeToken(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+    case '"':
+        return string();
     }
     return errorToken("Unexpected character.");
+}
+static Token string()
+{
+    while (peek() != '"' && !isAtEnd())
+    {
+        if (peek() == '\n')
+            scanner.line++;
+        advance();
+    }
+    if (isAtEnd())
+        return errorToken("Undeterminated string.");
+
+    advance();
+    return makeToken(TOKEN_STRING);
 }
 
 static bool isAtEnd()
 {
     return *scanner.current == '\0';
 }
+static bool isDigit(char c)
+{
+    return c >= '0' && c <= '9';
+}
+static Token number()
+{
+    while (isDigit(peek()))
+        advance();
 
+    if (peek() == '.' && isDigit(peekNext()))
+    {
+        advance();
+        while (isDigit(peek()))
+            advance();
+    }
+    return makeToken(TOKEN_NUMBER);
+}
 static Token makeToken(TokenType type)
 {
     Token token;
@@ -86,13 +122,54 @@ static Token errorToken(const char *message)
     token.line = scanner.line;
     return token;
 }
+static void skipWhitespace()
+{
+    for (;;)
+    {
+        char c = peek();
+        switch (c)
+        {
+        case ' ':
+        case '\r':
+        case '\t':
+            advance();
+            break;
+        case '\n':
+            scanner.line++;
+            advance();
+            break;
+        case '/':
+            if (peekNext() == '/')
+            {
+                while (peek() != '\n' && !isAtEnd())
+                    advance();
+            }
+            else
+            {
+                return;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+}
 
 static char advance()
 {
     scanner.current++;
     return scanner.current[-1];
 }
-
+static char peek()
+{
+    return *scanner.current;
+}
+static char peekNext()
+{
+    if (isAtEnd())
+        return '\0';
+    return scanner.current[1];
+}
 static bool match(char expected)
 {
     if (isAtEnd())
@@ -101,4 +178,21 @@ static bool match(char expected)
         return false;
     scanner.current++;
     return true;
+}
+static isAlpha(char c)
+{
+    return (c >= 'a' && c <= 'z') ||
+           (c >= 'A' && c <= 'Z') ||
+           c == '_';
+}
+static Token identifier()
+{
+    while (isAlpha(peek()) || isDigit(peek()))
+        advance();
+    return makeToken(identifierType());
+}
+
+static TokenType identifierType()
+{
+    return TOKEN_IDENTIFIER;
 }
