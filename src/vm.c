@@ -1,8 +1,10 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include "vm.h"
 #include "common.h"
 #include "debug.h"
 #include "memory.h"
+#include "compiler.h"
 
 VM vm;
 
