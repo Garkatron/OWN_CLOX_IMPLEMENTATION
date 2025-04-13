@@ -12,6 +12,22 @@ typedef struct
     bool panicMode; // Flag to enter in panic mode and re-sync the parser with the code.
 } Parser;
 
+// Lowes to heighest precedense.
+typedef enum
+{
+    PREC_NONE,
+    PREC_ASSIGNMENT, // =
+    PREC_OR,         // or
+    PREC_AND,        // and
+    PREC_EQUALITY,   // == !=
+    PREC_COMPARISON, // < > <= >=
+    PREC_TERM,       // + -
+    PREC_FACTOR,     // * /
+    PREC_UNARY,      // ! -
+    PREC_CALL,       // . ()
+    PREC_PRIMARY
+} Precedence;
+
 Parser parser;
 Chunk *compilingChunk;
 
@@ -154,8 +170,37 @@ static void number()
     emitConstant(value);
 }
 
+// Prefix the expression.
+static void unary()
+{
+    TokenType operatorType = parser.previous.type;
+
+    // Compile the operand.
+    parsePrecedence(PREC_UNARY);
+
+    // Emit the operator instruction.
+
+    switch (operatorType)
+    {
+    case TOKEN_MINUS:
+        emitByte(OP_NEGATE);
+        break;
+
+    default:
+        return; // Unreachable.
+    }
+}
+
+/*
+Starts at the current token and parses any expression at the given precedence level or higher.
+*/
+static void parsePrecedence(Precedence precedence)
+{
+}
+
 static void expression()
 {
+    parsePrecedence(PREC_ASSIGNMENT);
 }
 
 bool compile(const char *source, Chunk *chunk)
