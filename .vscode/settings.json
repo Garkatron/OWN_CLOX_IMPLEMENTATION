@@ -16,6 +16,8 @@
         "mymalloc.h": "c",
         "stddef.h": "c",
         "vm.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "scanner.h": "c",
+        "type_traits": "c"
     }
 }

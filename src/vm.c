@@ -1,8 +1,10 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include "vm.h"
 #include "common.h"
 #include "debug.h"
 #include "memory.h"
+#include "compiler.h"
 
 VM vm;
 
@@ -146,11 +148,8 @@ void modifyCurrent(Value value) {
     *current = value;
 }
 
-InterpretResult interpret(Chunk *chunk)
+InterpretResult interpret(const char* source)
 {
-    printf("\n");
-    printf("<-----------{ Interpreting }----------->\n");
-    vm.chunk = chunk;
-    vm.ip = vm.chunk->code;
-    return run();
+    compile(source);
+    return INTERPRET_OK;
 }
