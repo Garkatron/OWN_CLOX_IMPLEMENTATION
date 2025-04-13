@@ -124,4 +124,41 @@ To substract a number we could negate the number and the add to the other number
 
 To negate a number without negate we could substract the double of the current amount
 
-####
+#### Scanning on demand
+#### Challenges
+https://craftinginterpreters.com/scanning-on-demand.html#challenges
+
+1.
+
+TOKEN_STRING_START
+TOKEN_INTERP_START
+
+TOKEN_STRING_START      "
+TOKEN_STRING_TEXT       "Nested "
+TOKEN_INTERP_START      ${
+TOKEN_STRING_START      "
+TOKEN_STRING_TEXT       "interpolation?! Are you "
+TOKEN_INTERP_START      ${
+TOKEN_STRING_START      "
+TOKEN_STRING_TEXT       "mad?!"
+TOKEN_STRING_END        "
+TOKEN_INTERP_END        }
+TOKEN_STRING_END        "
+TOKEN_INTERP_END        }
+TOKEN_STRING_END        "
+
+2.
+
+Java never needed to backtrack or re-tokenize like old C++ did.
+
+The generic grammar was designed to be unambiguous and context-aware from the beginning.
+
+C# generics are parsed contextually, and its parser knows that inside generic type argument lists, >> should be treated as two >s.
+
+The tokenizer does not combine >> in generic contexts.
+
+Parsing rules for type arguments are distinct from expressions, so >> is not interpreted as an operator here.
+
+3.
+https://howtodoinjava.com/java/basics/java-keywords/#:~:text=3.-,Contextual%20Keywords,-The%20following%2016 
+
