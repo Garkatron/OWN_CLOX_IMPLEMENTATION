@@ -3,6 +3,7 @@
 
 #include "vm.h"
 
+// Compiles the source code.
 void compile(const char *source, Chunk *Chunk);
 
 #endif

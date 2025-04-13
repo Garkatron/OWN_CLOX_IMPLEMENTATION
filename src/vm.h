@@ -11,8 +11,8 @@ typedef struct
     uint8_t *ip;
     int stackCount;
     int stackCapacity;
-    Value *stack; // LIFO PILE
-    Value *stackTop;        // Points just past the last item
+    Value *stack;    // LIFO PILE
+    Value *stackTop; // Points just past the last item
 } VM;
 
 typedef enum
@@ -24,10 +24,15 @@ typedef enum
 
 void initVM();
 void freeVM();
-InterpretResult interpret(const char* source);
+// Interprets the source code.
+InterpretResult interpret(const char *source);
+// Push a value into the stack and increase the stackTop
 void push(Value value);
+// Push back the stackTop and returns the "deleted" value.
 Value pop();
+// Gets the current value from the slot.
 Value getCurrent();
+// Modifies the current slot with the given value.
 void modifyCurrent(Value value);
 
 #endif

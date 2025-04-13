@@ -61,9 +61,6 @@ void writeConstant(Chunk *chunk, Value value, int line)
     }
 }
 
-/*
-Adds the given value to the end of the chunk's constant table and return its index.
-*/
 int addConstant(Chunk *chunk, Value value)
 {
     writeValueArray(&chunk->constants, value);

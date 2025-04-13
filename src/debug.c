@@ -2,12 +2,14 @@
 #include "debug.h"
 #include "value.h"
 
+// Prints a simple instruction.
 static int simpleInstruction(const char *name, int offset)
 {
     printf("%s\n", name);
     return offset + 1;
 }
 
+// Prints a constant instruction.
 static int constantInstruction(const char *name, Chunk *chunk, int offset)
 {
     uint8_t constant = chunk->code[offset + 1];
@@ -17,6 +19,7 @@ static int constantInstruction(const char *name, Chunk *chunk, int offset)
     return offset + 2;
 }
 
+// Prints a long constant instruction.
 static int constantLongInstruction(const char *name, Chunk *chunk, int offset)
 {
     uint8_t by1 = chunk->code[offset + 1];
@@ -39,6 +42,7 @@ void disassembleChunk(Chunk *chunk, const char *name)
         offset = disassembleInstruction(chunk, offset);
     }
 }
+
 int disassembleInstruction(Chunk *chunk, int offset)
 {
     printf("%04d ", offset);

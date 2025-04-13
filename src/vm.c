@@ -140,20 +140,22 @@ Value getCurrent()
         fprintf(stderr, "Runtime error: Stack underflow.\n");
         exit(1);
     }
-    return *(vm.stackTop-1);
+    return *(vm.stackTop - 1);
 }
 
-void modifyCurrent(Value value) {
-    Value *current = vm.stackTop-1;
+void modifyCurrent(Value value)
+{
+    Value *current = vm.stackTop - 1;
     *current = value;
 }
 
-InterpretResult interpret(const char* source)
+InterpretResult interpret(const char *source)
 {
     Chunk chunk;
     initChunk(&chunk);
 
-    if (!compile(source, &chunk)) {
+    if (!compile(source, &chunk))
+    {
         freeChunk(&chunk);
         return INTERPRET_COMPILE_ERROR;
     }
