@@ -8,8 +8,8 @@ typedef struct
 {
     Token current;
     Token previous;
-    bool hadError;
-    bool panicMode;
+    bool hadError;  // Flag to alert an error.
+    bool panicMode; // Flag to enter in panic mode and re-sync the parser with the code.
 } Parser;
 
 Parser parser;
@@ -139,6 +139,14 @@ static void endCompiler()
     emitReturn();
 }
 
+// Grouping isn't a back-end useful, it's front-end syntactic sugar.
+// Assuming that the initial ( has been consumed, it calls to expression to compile the expression.
+static void grouping()
+{
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
+}
+
 // Store a pointer and then emit the constant. Takes the lexeme and conver it to a double value.
 static void number()
 {
@@ -150,7 +158,7 @@ static void expression()
 {
 }
 
-void compile(const char *source, Chunk *chunk)
+bool compile(const char *source, Chunk *chunk)
 {
     initScanner(source);
     compilingChunk = chunk;
