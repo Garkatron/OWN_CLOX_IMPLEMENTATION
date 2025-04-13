@@ -155,6 +155,43 @@ static void endCompiler()
     emitReturn();
 }
 
+/*
+* Compiles a binary operation expression.
+*
+* This function is called after the left-hand operand has already been compiled
+* and the infix operator has been consumed. It parses and compiles the right-hand
+operand using a higher precedence level to ensure left-associative behavior.
+
+Once both operands are compiled, it emits the appropriate bytecode instruction
+for the operator (e.g., OP_ADD for '+', OP_SUBTRACT for '-', etc.).
+
+This allows multiple binary operators to be handled by a single function using
+dynamic precedence lookup through getRule().
+*/
+static void binary()
+{
+    TokenType operatorType = parser.previous.type;
+    ParseRule *rule = getRule(operatorType);
+    parsePrecedence((Precedence)(rule->precedence + 1));
+    switch (operatorType)
+    {
+    case TOKEN_PLUS:
+        emitByte(OP_ADD);
+        break;
+    case TOKEN_MINUS:
+        emitByte(OP_SUBTRACT);
+        break;
+    case TOKEN_STAR:
+        emitByte(OP_MULTIPLY);
+        break;
+    case TOKEN_SLASH:
+        emitByte(OP_DIVIDE);
+        break;
+    default:
+        return; // Unreachable.
+    }
+}
+
 // Grouping isn't a back-end useful, it's front-end syntactic sugar.
 // Assuming that the initial ( has been consumed, it calls to expression to compile the expression.
 static void grouping()
