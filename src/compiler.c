@@ -13,6 +13,13 @@ typedef struct
 } Parser;
 
 Parser parser;
+Chunk *compilingChunk;
+
+// Returns the current compiling chunk.
+static Chunk *currentChunk()
+{
+    return compilingChunk;
+}
 
 /*
 1. Prints where the error occurred.
@@ -76,6 +83,10 @@ static void advance()
         errorAtCurrent(parser.current.start);
     }
 }
+
+/*
+Reads the next token and validates that token has expected type. If not, it reports an error.
+*/
 static void consume(TokenType type, const char *message)
 {
     if (parser.current.type == type)
@@ -85,12 +96,39 @@ static void consume(TokenType type, const char *message)
     }
     errorAtCurrent(message);
 }
-void compile(const char *source, Chunk *Chunk);
+
+// Adds a byte to the chunk
+static void emitByte(uint8_t byte)
+{
+    writeChunk(currentChunk(), byte, parser.previous.line);
+}
+
+// Convenience function to emit opcode followed by a one-byte operand.
+static void emitBytes(uint8_t byte1, uint8_t byte2)
+{
+    emitByte(byte1);
+    emitByte(byte2);
+}
+
+static void emitReturn()
+{
+    emitByte(OP_RETURN);
+}
+
+static void endCompiler()
+{
+    emitReturn();
+}
+
+void compile(const char *source, Chunk *chunk)
 {
     initScanner(source);
+    compilingChunk = chunk;
     parser.hadError = false;
     parser.panicMode = false;
     advance();
     expression();
-    consume(TOKEN_EOF, "Expect end of expression.") return !parser.hadError;
+    consume(TOKEN_EOF, "Expect end of expression.");
+    endCompiler();
+    return !parser.hadError;
 }
