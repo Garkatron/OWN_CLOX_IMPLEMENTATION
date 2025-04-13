@@ -44,12 +44,16 @@ void writeChunk(Chunk *chunk, uint8_t byte, int line)
     chunk->count++;
 }
 
-void writeConstant(Chunk *chunk, Value value, int line) {
+void writeConstant(Chunk *chunk, Value value, int line)
+{
     int constIndex = addConstant(chunk, value);
-    if (constIndex < 256) {
+    if (constIndex < 256)
+    {
         writeChunk(chunk, OP_CONSTANT, line);
         writeChunk(chunk, constIndex, line);
-    } else {
+    }
+    else
+    {
         writeChunk(chunk, OP_CONSTANT_LONG, line);
         writeChunk(chunk, (constIndex >> 16) & 0XFF, line);
         writeChunk(chunk, (constIndex >> 8) & 0XFF, line);
@@ -57,6 +61,9 @@ void writeConstant(Chunk *chunk, Value value, int line) {
     }
 }
 
+/*
+Adds the given value to the end of the chunk's constant table and return its index.
+*/
 int addConstant(Chunk *chunk, Value value)
 {
     writeValueArray(&chunk->constants, value);

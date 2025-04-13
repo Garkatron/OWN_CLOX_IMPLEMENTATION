@@ -115,9 +115,39 @@ static void emitReturn()
     emitByte(OP_RETURN);
 }
 
+// Makes sure that whe don't add more than 256 constant in a chunk.
+
+static uint8_t makeConstant(Value value)
+{
+    int constant = addConstant(currentChunk(), value);
+    if (constant > UINT8_MAX)
+    {
+        error("To many constants in one chunk.");
+        return 0;
+    }
+    return (uint8_t)constant;
+}
+
+// Loads a value.
+static void emitConstant(Value value)
+{
+    emitBytes(OP_CONSTANT, makeConstant(value));
+}
+
 static void endCompiler()
 {
     emitReturn();
+}
+
+// Store a pointer and then emit the constant. Takes the lexeme and conver it to a double value.
+static void number()
+{
+    double value = strtod(parser.previous.start, NULL);
+    emitConstant(value);
+}
+
+static void expression()
+{
 }
 
 void compile(const char *source, Chunk *chunk)
