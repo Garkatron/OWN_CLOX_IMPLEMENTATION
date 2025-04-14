@@ -191,6 +191,8 @@ Token scanToken() {
     if (isDigit(c)) return number();
 
     switch (c) {
+        case '?': return makeToken(TOKEN_INTERROGATION_OPEN);
+        case ':': return makeToken(TOKEN_COLON);
         case '(': return makeToken(TOKEN_LEFT_PAREN);
         case ')': return makeToken(TOKEN_RIGHT_PAREN);
         case '{': return makeToken(TOKEN_LEFT_BRACE);
