@@ -21,6 +21,7 @@ typedef enum
 {
     PREC_NONE,
     PREC_ASSIGNMENT, // =
+    PREC_TERNARY,
     PREC_OR,         // or
     PREC_AND,        // and
     PREC_EQUALITY,   // == !=
@@ -251,9 +252,19 @@ static void unary()
     }
 }
 
+static void ternary()
+{
+    parsePrecedence(PREC_TERNARY); // True body
+
+    consume(TOKEN_COLON, "Expect : ':' after expression.");
+
+    parsePrecedence(PREC_TERNARY); // False body
+}
+
 ParseRule rules[] = {
     [TOKEN_LEFT_PAREN] = {grouping, NULL, PREC_NONE},
     [TOKEN_RIGHT_PAREN] = {NULL, NULL, PREC_NONE},
+    //  [TOKEN_INTERROGATION_OPEN] = {NULL, ternary, PREC_TERNARY}
     [TOKEN_LEFT_BRACE] = {NULL, NULL, PREC_NONE},
     [TOKEN_RIGHT_BRACE] = {NULL, NULL, PREC_NONE},
     [TOKEN_COMMA] = {NULL, NULL, PREC_NONE},
