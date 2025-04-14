@@ -258,6 +258,10 @@ Token scanToken()
 
     switch (c)
     {
+    case '?':
+        return makeToken(TOKEN_INTERROGATION_OPEN);
+    case ':':
+        return makeToken(TOKEN_COLON);
     case '(':
         return makeToken(TOKEN_LEFT_PAREN);
     case ')':
