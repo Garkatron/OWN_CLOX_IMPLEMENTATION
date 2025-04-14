@@ -162,3 +162,6 @@ Parsing rules for type arguments are distinct from expressions, so >> is not int
 3.
 https://howtodoinjava.com/java/basics/java-keywords/#:~:text=3.-,Contextual%20Keywords,-The%20following%2016 
 
+####Prat parsing
+![alt text](image-2.png)
+

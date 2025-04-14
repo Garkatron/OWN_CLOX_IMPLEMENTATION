@@ -286,14 +286,28 @@ ParseRule rules[] = {
 
 /*
 Starts at the current token and parses any expression at the given precedence level or higher.
+Reads the next tokend and looks the corresponding ParserRule. If not exists a caller it returns.
 */
 static void parsePrecedence(Precedence precedence)
 {
+    advance();
+    ParseFn prefixRule = getRule(parser.previous.type)->prefix;
+    if (prefixRule == NULL)
+    {
+        error("Expect expression.");
+        return;
+    }
+    prefixRule();
+    while (precedence <= getRule(parser.current.type)->precedence)
+    {
+        advance();
+        ParseFn infixRule = getRule(parser.previous.type)->infix;
+        infixRule();
+    }
 }
 
 /*
 Returns the rule at the given index
-
 */
 static ParseRule *getRule(TokenType type)
 {
