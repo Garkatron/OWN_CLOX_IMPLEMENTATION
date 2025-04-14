@@ -34,9 +34,17 @@ typedef struct
 
 void initChunk(Chunk *chunk);
 void freeChunk(Chunk *chunk);
+
+// Writes a byte into the chunk.
 void writeChunk(Chunk *chunk, uint8_t byte, int line);
+
+// Writes a constant to the constant pool of the chunk.
 void writeConstant(Chunk *chunk, Value value, int line);
+
+// Gets the line of the given index.
 int getLine(Chunk *chunk, int index);
+
+// Adds the given value to the end of the chunk's constant table and return its index.
 int addConstant(Chunk *chunk, Value value);
 
 #endif

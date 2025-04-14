@@ -44,12 +44,16 @@ void writeChunk(Chunk *chunk, uint8_t byte, int line)
     chunk->count++;
 }
 
-void writeConstant(Chunk *chunk, Value value, int line) {
+void writeConstant(Chunk *chunk, Value value, int line)
+{
     int constIndex = addConstant(chunk, value);
-    if (constIndex < 256) {
+    if (constIndex < 256)
+    {
         writeChunk(chunk, OP_CONSTANT, line);
         writeChunk(chunk, constIndex, line);
-    } else {
+    }
+    else
+    {
         writeChunk(chunk, OP_CONSTANT_LONG, line);
         writeChunk(chunk, (constIndex >> 16) & 0XFF, line);
         writeChunk(chunk, (constIndex >> 8) & 0XFF, line);
