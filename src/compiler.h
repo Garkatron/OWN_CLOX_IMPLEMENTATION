@@ -3,7 +3,7 @@
 
 #include "vm.h"
 
-// Compiles the source code.
+// Given source code, it compiles it by writing bytes into the chunk.
 bool compile(const char *source, Chunk *Chunk);
 
 #endif

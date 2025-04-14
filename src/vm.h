@@ -24,7 +24,9 @@ typedef enum
 
 void initVM();
 void freeVM();
-// Interprets the source code.
+/*
+Given source code, it compiles it into a chunk. If compilation succeeds, it runs the code; otherwise, it frees the chunk and reports a compilation error.
+*/
 InterpretResult interpret(const char *source);
 // Push a value into the stack and increase the stackTop
 void push(Value value);

@@ -137,7 +137,7 @@ static TokenType checkKeyword(int start, int length, const char *rest, TokenType
 }
 
 /*
-Identifies the the token type looking at the first letters.
+Identifies the the token type looking at the first letters and returns the expected token.
 */
 static TokenType identifierType()
 {
