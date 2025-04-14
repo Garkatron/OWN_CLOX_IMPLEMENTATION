@@ -3,8 +3,24 @@
 
 #include "common.h"
 
+typedef enum
+{
+    VAL_BOOL,
+    VAL_NIL,
+    VAL_NUMBER
+} ValueType;
+
 // This typedef abstracts how Lox values are concretely represented in C
-typedef double Value;
+typedef struct
+{
+    ValueType type;
+    union
+    {
+        bool boolean;
+        double number;
+    } as;
+
+} Value;
 
 typedef struct
 {
