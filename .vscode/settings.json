@@ -18,6 +18,7 @@
         "vm.h": "c",
         "stdbool.h": "c",
         "scanner.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "compiler.h": "c"
     }
 }

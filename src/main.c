@@ -34,18 +34,19 @@ static char *readFile(const char *path)
    rewind(file);                  // back to the start of the file + 1 byte;
 
    char *buffer = (char *)malloc(fileSize + 1);
-   if (buffer = NULL)
+   if (buffer == NULL)
    {
       fprintf(stderr, "Not enough memory to read \"%s\".\n");
       exit(74);
    }
    size_t bytesRead = fread(buffer, sizeof(char), fileSize, file);
+
    if (bytesRead < fileSize)
    {
       fprintf(stderr, "Could not read file \"%s\".\n", path);
       exit(74);
    }
-   buffer[bytesRead] = '\0'; // Not null terminartor.
+   buffer[bytesRead] = '\0'; // Add null terminator.
 
    fclose(file);
    return buffer;

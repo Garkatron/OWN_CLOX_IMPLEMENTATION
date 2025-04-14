@@ -61,6 +61,8 @@ typedef struct
 } Token;
 
 void initScanner(const char *source);
+
+// Scans the tokens throught the source code.
 Token scanToken();
 
 #endif
