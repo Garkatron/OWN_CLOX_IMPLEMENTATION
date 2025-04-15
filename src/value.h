@@ -22,6 +22,29 @@ typedef struct
 
 } Value;
 
+// Return true has the given type.
+#define IS_BOOL(value) ((value).type == VAL_BOOL)
+#define IS_NIL(value) ((value).type == VAL_NIL)
+#define IS_NUMBER(value) ((value).type == VAL_NUMBER)
+
+// Returns the corresponding raw C value.
+#define AS_BOOL(value) ((Value).as.boolean)
+#define AS_NUMBER(value) ((Value).as.number)
+
+// Takes a C value of the appropiate type and produces a Value with the correct ype tag and contains the underlying value.
+#define BOOL_VAL(value)                \
+    (Value)                            \
+    {                                  \
+        VAL_BOOL, { .boolean = value } \
+    }
+#define NIL_VAL(value) \
+    (Value) { VAL_NIL, {.number = 0} }
+#define NUMBER_VAL(value)               \
+    (Value)                             \
+    {                                   \
+        VAL_NUMBER, { .number = value } \
+    }
+
 typedef struct
 {
     int count;
