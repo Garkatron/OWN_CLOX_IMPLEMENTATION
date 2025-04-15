@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "vm.h"
@@ -66,7 +67,12 @@ static InterpretResult run()
         }
 
         case OP_NEGATE:
-            modifyCurrent(-getCurrent());
+            if (!IS_NUMBER(peek(0)))
+            {
+                runtimeError("Operand must be a number");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            modifyCurrent(NUMBER_VAL(-AS_NUMBER(getCurrent())));
             break;
         case OP_ADD:
             BINARY_OP(+);
@@ -86,6 +92,20 @@ static InterpretResult run()
 #undef BINARY_OP
         }
     }
+}
+
+static void runtimeError(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fputs("\n", stderr);
+
+    size_t instruction = vm.ip - vm.chunk->code - 1;
+    int line = vm.chunk->lines[instruction];
+    fprintf(stderr, "[line %d] in script\n", line);
+    resetStack();
 }
 
 static void resetStack()
@@ -131,6 +151,12 @@ Value pop()
     }
     vm.stackTop--;
     return *vm.stackTop;
+}
+
+// Access the value
+static Value peek(int distance)
+{
+    return vm.stackTop[-1 - distance];
 }
 
 Value getCurrent()
