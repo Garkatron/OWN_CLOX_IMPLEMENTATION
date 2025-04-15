@@ -20,5 +20,6 @@
         "scanner.h": "c",
         "type_traits": "c",
         "xtr1common": "c"
+        "compiler.h": "c"
     }
 }

@@ -14,6 +14,8 @@ typedef enum
     TOKEN_PLUS,
     TOKEN_SEMICOLON,
     TOKEN_SLASH,
+    TOKEN_INTERROGATION_OPEN,
+    TOKEN_COLON,
     TOKEN_STAR,
     // One or two character tokens.
     TOKEN_BANG,
@@ -59,6 +61,8 @@ typedef struct
 } Token;
 
 void initScanner(const char *source);
+
+// Scans the tokens throught the source code.
 Token scanToken();
 
 #endif

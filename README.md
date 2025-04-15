@@ -162,3 +162,66 @@ Parsing rules for type arguments are distinct from expressions, so >> is not int
 3.
 https://howtodoinjava.com/java/basics/java-keywords/#:~:text=3.-,Contextual%20Keywords,-The%20following%2016 
 
+#### Compiling Expressions
+![alt text](image-2.png)
+
+##### Challenges
+
+1. To really understand the parser, you need to see how execution threads through the interesting parsing functions—parsePrecedence() and the parser functions stored in the table. Take this (strange) expression:
+  1. expression()
+    2. parsePrecedence()
+      3. advance()
+      4. getRule()
+    5. prefixRule()
+    (Optional) 6. getRule()
+    (Optional) 7. advance()
+    (Optional) 8. getRule()
+    (Optional) 9. infixRule()
+  
+  1. Grouping()
+   2. Unary()
+   3. binary()
+   4. Unary()
+   3. binary()
+   3. binary()
+   3. binary()
+
+```scss
+expression()
+  └── parsePrecedence(PREC_ASSIGNMENT)
+        └── advance() → (
+        └── grouping()
+              └── expression()
+                    └── parsePrecedence(PREC_ASSIGNMENT)
+                          └── advance() → -
+                          └── unary()
+                                └── parsePrecedence(PREC_UNARY)
+                                      └── advance() → 1
+                                      └── number()
+                          └── binary() for +
+                                └── parsePrecedence(PREC_FACTOR)
+                                      └── advance() → 2
+                                      └── number()
+        └── binary() for *
+              └── parsePrecedence(PREC_FACTOR)
+                    └── advance() → 3
+                    └── number()
+        └── binary() for -
+              └── parsePrecedence(PREC_FACTOR)
+                    └── advance() → -
+                    └── unary()
+                          └── parsePrecedence(PREC_UNARY)
+                                └── advance() → 4
+                                └── number()
+```
+
+2.
+
++ (optional prefix), infix
+
+3.
+
+
+
+
+
