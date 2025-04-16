@@ -19,79 +19,85 @@ static InterpretResult run()
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()]) // Next byte from bytecode
     for (;;)
     {
-#define BINARY_OP(op)     \
-    do                    \
-    {                     \
-        double b = pop(); \
-        double a = pop(); \
-        push(a op b);     \
-    } while (false)
+#define BINARY_OP(valueType, op)                        \
+    do                                                  \
+    {                                                   \
+        if (!IS_NUMBER(peek(0)) || !IS_NUMBER(peek(1))) \
+        {                                               \
+            runtimeError("Operands must be numbers.");  \
+            return INTERPRET_RUNTIME_ERROR;             \
+        }                                               \
+        double b = AS_NUMBER(pop());                    \
+        double a = AS_NUMBER(pop());                    \
+        push(valueType(a op b));
+    }
+    while (false)
 
 #ifdef DEBUG_TRACE_EXECUTION
         printf("                                          ");
-        for (Value *slot = vm.stack; slot < vm.stackTop; slot++)
-        {
-            printf("[ ");
-            printValue(*slot);
-            printf(" ]");
-        }
-        printf("\n");
-        disassembleInstruction(vm.chunk,
-                               (int)(vm.ip - vm.chunk->code));
+    for (Value *slot = vm.stack; slot < vm.stackTop; slot++)
+    {
+        printf("[ ");
+        printValue(*slot);
+        printf(" ]");
+    }
+    printf("\n");
+    disassembleInstruction(vm.chunk,
+                           (int)(vm.ip - vm.chunk->code));
 #endif
 
-        uint8_t instruction;
-        switch (instruction = READ_BYTE())
-        {
-        case OP_RETURN:
-        {
-            printValue(pop());
-            printf("\n");
-            return INTERPRET_OK;
-        }
-        case OP_CONSTANT:
-        {
-            Value constant = READ_CONSTANT();
-            push(constant);
-            break;
-        }
-        case OP_CONSTANT_LONG:
-        {
-            uint8_t byte1 = READ_BYTE();
-            uint8_t byte2 = READ_BYTE();
-            uint8_t byte3 = READ_BYTE();
-            int index = (byte1 << 16) | (byte2 << 8) | byte3;
-            Value constant = vm.chunk->constants.values[index];
-            push(constant);
-            break;
-        }
+    uint8_t instruction;
+    switch (instruction = READ_BYTE())
+    {
+    case OP_RETURN:
+    {
+        printValue(pop());
+        printf("\n");
+        return INTERPRET_OK;
+    }
+    case OP_CONSTANT:
+    {
+        Value constant = READ_CONSTANT();
+        push(constant);
+        break;
+    }
+    case OP_CONSTANT_LONG:
+    {
+        uint8_t byte1 = READ_BYTE();
+        uint8_t byte2 = READ_BYTE();
+        uint8_t byte3 = READ_BYTE();
+        int index = (byte1 << 16) | (byte2 << 8) | byte3;
+        Value constant = vm.chunk->constants.values[index];
+        push(constant);
+        break;
+    }
 
-        case OP_NEGATE:
-            if (!IS_NUMBER(peek(0)))
-            {
-                runtimeError("Operand must be a number");
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            modifyCurrent(NUMBER_VAL(-AS_NUMBER(getCurrent())));
-            break;
-        case OP_ADD:
-            BINARY_OP(+);
-            break;
-        case OP_SUBTRACT:
-            BINARY_OP(-);
-            break;
-        case OP_MULTIPLY:
-            BINARY_OP(*);
-            break;
-        case OP_DIVIDE:
-            BINARY_OP(/);
-            break;
+    case OP_NEGATE:
+        if (!IS_NUMBER(peek(0)))
+        {
+            runtimeError("Operand must be a number");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        modifyCurrent(NUMBER_VAL(-AS_NUMBER(getCurrent())));
+        break;
+    case OP_ADD:
+        BINARY_OP(NUMBER_VAL, +);
+        break;
+    case OP_SUBTRACT:
+        BINARY_OP(NUMBER_VAL, -);
+        break;
+    case OP_MULTIPLY:
+        BINARY_OP(NUMBER_VAL, *);
+        break;
+    case OP_DIVIDE:
+        BINARY_OP(NUMBER_VAL, /);
+        break;
 
 #undef READ_BYTE
 #undef READ_CONSTANT
 #undef BINARY_OP
-        }
     }
+}
 }
 
 static void runtimeError(const char *format, ...)
