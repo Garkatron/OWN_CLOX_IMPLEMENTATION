@@ -45,3 +45,25 @@ void printValue(Value value)
         break;
     }
 }
+
+/*
+First, we check the types. If the Values have different types, they are definitely not equal. Otherwise, we unwrap the two Values and compare them directly.
+*/
+bool valuesEqual(Value a, Value b)
+{
+    if (a.type != b.type)
+        return false;
+    switch (a.type)
+    {
+    case VAL_BOOL:
+        return AS_BOOL(a) == AS_BOOL(b);
+    case VAL_NIL:
+        return true;
+
+    case VAL_NUMBER:
+        return AS_NUMBER(a) == AS_NUMBER(b);
+
+    default:
+        return false; // Unreachable.
+    }
+}

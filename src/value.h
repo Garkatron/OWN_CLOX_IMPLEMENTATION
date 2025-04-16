@@ -33,7 +33,7 @@ typedef struct
 
 // Takes a C value of the appropiate type and produces a Value with the correct ype tag and contains the underlying value.
 #define BOOL_VAL(value) ((Value){VAL_BOOL, {.boolean = value}})
-#define NIL_VAL         ((Value){VAL_NIL, {.number = 0}}) 
+#define NIL_VAL ((Value){VAL_NIL, {.number = 0}})
 #define NUMBER_VAL(value) ((Value){VAL_NUMBER, {.number = value}})
 
 typedef struct
@@ -43,6 +43,7 @@ typedef struct
     Value *values;
 } ValueArray;
 
+bool valuesEqual(Value a, Value b);
 void initValueArray(ValueArray *valueArray);
 void freeValueArray(ValueArray *valueArray);
 void writeValueArray(ValueArray *valueArray, Value value);
