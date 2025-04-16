@@ -32,18 +32,9 @@ typedef struct
 #define AS_NUMBER(value) ((value).as.number)
 
 // Takes a C value of the appropiate type and produces a Value with the correct ype tag and contains the underlying value.
-#define BOOL_VAL(value)                \
-    (Value)                            \
-    {                                  \
-        VAL_BOOL, { .boolean = value } \
-    }
-#define NIL_VAL(value) \
-    (Value) { VAL_NIL, {.number = 0} }
-#define NUMBER_VAL(value)               \
-    (Value)                             \
-    {                                   \
-        VAL_NUMBER, { .number = value } \
-    }
+#define BOOL_VAL(value) ((Value){VAL_BOOL, {.boolean = value}})
+#define NIL_VAL         ((Value){VAL_NIL, {.number = 0}}) 
+#define NUMBER_VAL(value) ((Value){VAL_NUMBER, {.number = value}})
 
 typedef struct
 {
