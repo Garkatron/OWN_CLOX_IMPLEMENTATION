@@ -5,6 +5,8 @@
 #include "object.h"
 #include "value.h"
 #include "vm.h"
+#include "object.h"
+#include "memory.h"
 
 // Avoids redundantly cast to a void*.
 #define ALLOCATE_OBJ(type, objectType) \
@@ -49,4 +51,10 @@ static ObjString *allocateString(char *chars, int length)
     string->length = length;
     string->chars = chars;
     return string;
+}
+
+// Takes ownerships
+ObjString *takeString(char *chars, int length)
+{
+    return allocateString(chars, length);
 }
