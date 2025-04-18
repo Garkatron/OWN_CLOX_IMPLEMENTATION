@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+// Allocates an array on the heap.
+#define ALLOCATE(type, count) \
+    (type *)reallocate(NULL, 0, sizeof(type) * count)
+
 // Calcs a new capacity based on given current capacity. It grows in factor of two because it's efficient and typical. 1.5x it's another obtion.
 #define GROW_CAPACITY(capacity) \
     ((capacity) < 8 ? 8 : (capacity) * 2)
