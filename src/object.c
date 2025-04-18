@@ -27,6 +27,19 @@ ObjString *copyString(const char *chars, int length)
     return allocateString(heapChars, length);
 }
 
+void printObject(Value value)
+{
+    switch (OBJ_TYPE(value))
+    {
+    case OBJ_STRING:
+        printf("%s", AS_CSTRING(value));
+        break;
+
+    default:
+        break;
+    }
+}
+
 /*
 Create a new ObjStrng on the heap and then initializes its fields.
 */
