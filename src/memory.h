@@ -2,10 +2,14 @@
 #define clox_memory_h
 
 #include "common.h"
+#include "object.h"
 
 // Allocates an array on the heap.
 #define ALLOCATE(type, count) \
     (type *)reallocate(NULL, 0, sizeof(type) * count)
+
+// Resizes a allocation down to zero bytes.
+#define FREE(type, pointer) reallocate(pointer, sizeof(type), 0)
 
 // Calcs a new capacity based on given current capacity. It grows in factor of two because it's efficient and typical. 1.5x it's another obtion.
 #define GROW_CAPACITY(capacity) \
@@ -25,5 +29,6 @@
 // Non‑zero, Smaller than oldSize - Shrink existing allocation.
 // Non‑zero, Larger than oldSize - Grow existing allocation.
 void *reallocate(void *pointer, size_t oldSize, size_t newSize);
+void freeObjects();
 
 #endif

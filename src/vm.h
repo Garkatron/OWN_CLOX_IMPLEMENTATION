@@ -13,6 +13,7 @@ typedef struct
     int stackCapacity;
     Value *stack;    // LIFO PILE
     Value *stackTop; // Points just past the last item
+    Obj *objects;    // Objects list
 } VM;
 
 typedef enum
@@ -21,6 +22,8 @@ typedef enum
     INTERPRET_COMPILE_ERROR,
     INTERPRET_RUNTIME_ERROR
 } InterpretResult;
+
+extern VM vm;
 
 void initVM();
 void freeVM();

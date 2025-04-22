@@ -37,13 +37,11 @@ void initVM()
     vm.stackCapacity = STACK_MAX;
     vm.stackCount = 0;
     resetStack();
+    vm.objects = NULL;
 }
 void freeVM()
 {
-    free(vm.stack);  // Free mem
-    vm.stack = NULL; // Avoid old info (Safe)
-    vm.stackCapacity = 0;
-    vm.stackCount = 0;
+    freeObjects();
 }
 
 void push(Value value)
