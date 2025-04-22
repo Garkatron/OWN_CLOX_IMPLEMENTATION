@@ -242,3 +242,6 @@ https://craftinginterpreters.com/strings.html#challenges
 
 3.
 I'll convert the other value to a string, because it's a common approach (Java, Python, C#) except for objecs (hashtables), the user will use a special function to convert it's own object to a string (more custom) (optional (default function pre created)).
+
+#### Design Note: String Encoding
+[Wren language](https://wren.io)
