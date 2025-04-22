@@ -44,14 +44,20 @@ void printObject(Value value)
     }
 }
 
-/*
-Create a new ObjStrng on the heap and then initializes its fields.
-*/
+// Create a new ObjStrng on the heap and then initializes its fields.
 static ObjString *allocateString(char *chars, int length)
 {
-    ObjString *string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
+    size_t totalSize = sizeof(ObjString) + length + 1;
+    ObjString *string = (ObjString *)malloc(totalSize); // Allocating memory
+    if (string == NULL)
+        exit(1); // Handling errors.
+
+    string->obj.type = OBJ_STRING;
     string->length = length;
-    string->chars = chars;
+
+    string->length = length;
+    memcpy(string->chars, chars, length); // old: string->chars = chars;
+    string->chars[length] = '\0';
     return string;
 }
 
