@@ -236,3 +236,9 @@ expression()
 - 0.0 to -5.0
 - != >= <=
 
+#### Strings
+##### Challenges
+https://craftinginterpreters.com/strings.html#challenges
+
+3.
+I'll convert the other value to a string, because it's a common approach (Java, Python, C#) except for objecs (hashtables), the user will use a special function to convert it's own object to a string (more custom) (optional (default function pre created)).

@@ -8,7 +8,7 @@
 #define IS_STRING(value) isObjType(value, OBJ_STRING)
 
 #define AS_STRING(value) ((ObjString *)AS_OBJ(value))
-#define AS_CSTRING(value) (AS_STRING(value)->chars)
+#define AS_CSTRING(value) (AS_STRING(value)->ownsChars ? (AS_STRING(value)->as.chars) : (AS_STRING(value)->as.strPtr))
 
 typedef enum
 {
@@ -25,12 +25,20 @@ struct ObjString
 {
     Obj obj;
     int length;
-    char chars[];
+    bool ownsChars;
+    union
+    {
+        char chars[]; // If heap.
+        char *strPtr; // If ptr.
+    } as;
 };
 
-ObjString *takeString(char *chars, int length);
+ObjString *
+takeString(char *chars, int length);
 
 ObjString *copyString(const char *chars, int length);
+ObjString *constString(const char *chars, int length);
+
 void printObject(Value value);
 
 static inline bool isObjType(Value value, ObjType type)

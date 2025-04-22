@@ -28,7 +28,7 @@ ObjString *copyString(const char *chars, int length)
     char *heapChars = ALLOCATE(char, length + 1);
     memcpy(heapChars, chars, length);
     heapChars[length] = '\0'; // Monolithic source string isn't terminated.
-    return allocateString(heapChars, length);
+    return allocateString(heapChars, length, true);
 }
 
 void printObject(Value value)
@@ -45,24 +45,29 @@ void printObject(Value value)
 }
 
 // Create a new ObjStrng on the heap and then initializes its fields.
-static ObjString *allocateString(char *chars, int length)
+static ObjString *allocateString(char *chars, int length, bool ownsChars)
 {
-    size_t totalSize = sizeof(ObjString) + length + 1;
-    ObjString *string = (ObjString *)malloc(totalSize); // Allocating memory
-    if (string == NULL)
-        exit(1); // Handling errors.
-
-    string->obj.type = OBJ_STRING;
+    // size_t totalSize = sizeof() + length + 1;
+    // OLD: ObjString *string = (ObjString *)malloc(totalSize); // Allocating memory
+    ObjString *string = ALLOCATE_OBJ(ObjString, OBJ_STRING); // Allocating memory
+    string->ownsChars = ownsChars;
     string->length = length;
-
-    string->length = length;
-    memcpy(string->chars, chars, length); // old: string->chars = chars;
-    string->chars[length] = '\0';
+    memcpy(string->as.chars, chars, length); // old: string->chars = chars;
+    string->as.chars[length] = '\0';
     return string;
+}
+
+ObjString *constString(const char *chars, int length)
+{
+    ObjString *str = ALLOCATE_OBJ(ObjString, OBJ_STRING);
+    str->length = length;
+    str->ownsChars = false;
+    str->as.strPtr = (char *)chars;
+    return str;
 }
 
 // Takes ownerships
 ObjString *takeString(char *chars, int length)
 {
-    return allocateString(chars, length);
+    return allocateString(chars, length, true);
 }
