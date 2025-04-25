@@ -30,6 +30,7 @@ If a the key exists it get overwrited.
 The function returns true if the entry was added.
 */
 bool tableSet(Table *table, ObjString *key, Value value);
+bool tableDelete(Table *table, ObjString *key);
 void tableAddAll(Table *from, Table *to);
 /*
 You pass in a table and a key. 
