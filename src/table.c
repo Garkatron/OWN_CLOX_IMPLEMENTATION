@@ -38,6 +38,14 @@ static Entry *findEntry(Entry *entries, int capacity, ObjString *key) {
     index = (index + 1) % capacity;
 }
 
+bool tableGet(Table *table, ObjString *key, Value *value) {
+    if (table->count == 0) return false;
+    Entry *entry = findEntry(table->entries, table->capacity, key);
+    if (entry->key == NULL) return false;
+    *value = entry->value;
+    return true;
+}
+
 /*
 1. Create a bucket array with capacity entries.
 2. Allocate the array, we initialize every element to be an empty bucket
@@ -83,3 +91,14 @@ bool tableSet(Table *table, ObjString *key, Value value)
     entry->value = value;
     return isNewKey;
 }
+
+void tableAddAll(Table *from, Table *to) {
+    for (int i = 0; i < from->capacity; i++)
+    {
+        Entry *entry = &from->entries[i];
+        if (entry->key != NULL) {
+            tableSet(to, entry->key, entry->value);
+        }
+    }
+}
+
