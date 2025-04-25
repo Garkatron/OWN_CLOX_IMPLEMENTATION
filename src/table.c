@@ -69,6 +69,7 @@ static void adjustCapacity(Table *table, int capacity) {
     }
 
     // re-insert everything
+    table->count = 0;
     for (int i = 0; i < table->capacity; i++)
     {
         Entry *entry = &table->entries[i];
@@ -94,7 +95,7 @@ bool tableSet(Table *table, ObjString *key, Value value)
 
     Entry *entry = findEntry(table->entries, table->capacity, key);
     bool isNewKey = entry->key == NULL;
-    if (isNewKey)
+    if (isNewKey && IS_NIL(entry->value))
         table->count++;
     entry->key = key;
     entry->value = value;
