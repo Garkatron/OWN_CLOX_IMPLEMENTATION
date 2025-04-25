@@ -24,5 +24,11 @@ typedef struct
 
 void initTable(Table *table);
 void freeTable(Table *table);
+/*
+Adds the given key/value pair to the given hash table.
+If a the key exists it get overwrited.
+The function returns true if the entry was added.
+*/
+bool tableSet(Table *table, ObjString *key, Value value);
 
 #endif
