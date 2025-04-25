@@ -245,3 +245,8 @@ I'll convert the other value to a string, because it's a common approach (Java, 
 
 #### Design Note: String Encoding
 [Wren language](https://wren.io)
+
+#### Hash tables
+
+If you’d like to learn more (and you should, because some of these are really cool), look into “double hashing”, “cuckoo hashing”, “Robin Hood hashing”, and anything those lead you to.
+
