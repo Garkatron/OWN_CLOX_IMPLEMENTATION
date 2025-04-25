@@ -27,30 +27,42 @@ It's responsible for taking a key and an array of buckeys, and figuring
 out wich bucket the entry belong in.
 https://craftinginterpreters.com/hash-tables.html#hashing-strings:~:text=This%20function%20is,insert%20new%20ones.
 */
-static Entry *findEntry(Entry *entries, int capacity, ObjString *key) {
+static Entry *findEntry(Entry *entries, int capacity, ObjString *key)
+{
     uint32_t index = key->hash % capacity;
     Entry *tombstone = NULL;
-    for (;;) {
+    for (;;)
+    {
         Entry *entry = &entries[index];
-        if (entry->key == NULL) {
-            if (IS_NIL(entry->value)) {
+        if (entry->key == NULL)
+        {
+            if (IS_NIL(entry->value))
+            {
                 // Empty entry.
                 return tombstone != NULL ? tombstone : entry;
-            } else {
+            }
+            else
+            {
                 // We found a tombstone.
-                if (tombstone == NULL) tombstone = entry;
-            } 
-        } else if(entry->key == key) {
+                if (tombstone == NULL)
+                    tombstone = entry;
+            }
+        }
+        else if (entry->key == key)
+        {
             return entry;
         }
     }
     index = (index + 1) % capacity;
 }
 
-bool tableGet(Table *table, ObjString *key, Value *value) {
-    if (table->count == 0) return false;
+bool tableGet(Table *table, ObjString *key, Value *value)
+{
+    if (table->count == 0)
+        return false;
     Entry *entry = findEntry(table->entries, table->capacity, key);
-    if (entry->key == NULL) return false;
+    if (entry->key == NULL)
+        return false;
     *value = entry->value;
     return true;
 }
@@ -60,7 +72,8 @@ bool tableGet(Table *table, ObjString *key, Value *value) {
 2. Allocate the array, we initialize every element to be an empty bucket
 to be an empty bucket and then store the array(and its capacity) in the hash table's main struct.
 */
-static void adjustCapacity(Table *table, int capacity) {
+static void adjustCapacity(Table *table, int capacity)
+{
     Entry *entries = ALLOCATE(Entry, capacity);
     for (int i = 0; i < capacity; i++)
     {
@@ -73,13 +86,14 @@ static void adjustCapacity(Table *table, int capacity) {
     for (int i = 0; i < table->capacity; i++)
     {
         Entry *entry = &table->entries[i];
-        if (entries->key == NULL) continue;
-        
+        if (entries->key == NULL)
+            continue;
+
         Entry *dest = findEntry(entries, capacity, entry->key);
         dest->key = entry->key;
         dest->value = entry->value;
     }
-    
+
     FREE_ARRAY(Entry, table->entries, table->capacity);
     table->entries = entries;
     table->capacity = capacity;
@@ -102,25 +116,52 @@ bool tableSet(Table *table, ObjString *key, Value value)
     return isNewKey;
 }
 
-bool tableDelete(Table *table, ObjString *key) {
-    if (table->count == 0) return false;
-    
+bool tableDelete(Table *table, ObjString *key)
+{
+    if (table->count == 0)
+        return false;
+
     // Find the entry
     Entry *entry = findEntry(table->entries, table->capacity, key);
-    if (entry->key == NULL) return false;
+    if (entry->key == NULL)
+        return false;
 
     // Place a tombstone in the entry.
     entry->key = NULL;
     entry->value = BOOL_VAL(true);
     return true;
 }
-void tableAddAll(Table *from, Table *to) {
+void tableAddAll(Table *from, Table *to)
+{
     for (int i = 0; i < from->capacity; i++)
     {
         Entry *entry = &from->entries[i];
-        if (entry->key != NULL) {
+        if (entry->key != NULL)
+        {
             tableSet(to, entry->key, entry->value);
         }
     }
 }
-
+ObjString *tableFindString(Table *table, const char *chars, int length, uint32_t hash)
+{
+    if (table->count == 0)
+        return NULL;
+    uint32_t index = hash % table->capacity;
+    for (;;)
+    {
+        Entry *entry = &table->entries[index];
+        if (entry->key == NULL)
+        {
+            // Stop if we find an empty no-tombstone entry.
+            if (IS_NIL(entry->value))
+                return;
+        }
+        else if (entry->key->length == length && entry->key->hash == hash)
+        {
+            
+            const char* keyChars = entry->key->ownsChars ? entry->key->as.chars : entry->key->as.strPtr;
+            if (memcmp(keyChars, chars, length) == 0) return entry->key; // We found it.
+            
+        }
+    }
+}

@@ -7,6 +7,7 @@
 #include "vm.h"
 #include "object.h"
 #include "memory.h"
+#include "table.h"
 
 // Avoids redundantly cast to a void*.
 #define ALLOCATE_OBJ(type, objectType) \
@@ -26,6 +27,8 @@ static Obj *allocateObject(size_t size, ObjType type)
 ObjString *copyString(const char *chars, int length)
 {
     uint32_t hash = hashString(chars, length);
+    ObjString *interned = tableFindString(&vm.strings, chars, length, hash);
+    if (interned != NULL) return interned;
     char *heapChars = ALLOCATE(char, length + 1);
     memcpy(heapChars, chars, length);
     heapChars[length] = '\0'; // Monolithic source string isn't terminated.
@@ -54,6 +57,7 @@ static ObjString *allocateString(char *chars, int length, bool ownsChars, uint32
     string->ownsChars = ownsChars;
     string->length = length;
     string->hash = hash;
+    tableSet(&vm.strings, string, NIL_VAL);
     memcpy(string->as.chars, chars, length); // old: string->chars = chars;
     string->as.chars[length] = '\0';
     return string;
@@ -83,5 +87,10 @@ ObjString *constString(const char *chars, int length)
 ObjString *takeString(char *chars, int length)
 {
     uint32_t hash = hashString(chars, length);
+    ObjString *interned = tableFindString(&vm.strings, chars, length, hash);
     return allocateString(chars, length, true, hash);
+    if (interned != NULL) {
+        FREE_ARRAY(char, chars, length + 1);
+        return interned;                                                               
+    }
 }

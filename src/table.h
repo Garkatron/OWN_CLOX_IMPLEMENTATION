@@ -32,6 +32,7 @@ The function returns true if the entry was added.
 bool tableSet(Table *table, ObjString *key, Value value);
 bool tableDelete(Table *table, ObjString *key);
 void tableAddAll(Table *from, Table *to);
+ObjString *tableFindString(Table *table, const char *chars, int length, uint32_t hash);
 /*
 You pass in a table and a key. 
 If it finds an entry with that key, it returns true, otherwise it returns false. If the entry exists, the value output parameter points to the resulting value.
