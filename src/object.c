@@ -25,10 +25,11 @@ static Obj *allocateObject(size_t size, ObjType type)
 // Allocate a new array on the heap. (Big as the string)
 ObjString *copyString(const char *chars, int length)
 {
+    uint32_t hash = hashString(chars, length);
     char *heapChars = ALLOCATE(char, length + 1);
     memcpy(heapChars, chars, length);
     heapChars[length] = '\0'; // Monolithic source string isn't terminated.
-    return allocateString(heapChars, length, true);
+    return allocateString(heapChars, length, true, hash);
 }
 
 void printObject(Value value)
@@ -45,16 +46,28 @@ void printObject(Value value)
 }
 
 // Create a new ObjStrng on the heap and then initializes its fields.
-static ObjString *allocateString(char *chars, int length, bool ownsChars)
+static ObjString *allocateString(char *chars, int length, bool ownsChars, uint32_t hash)
 {
     // size_t totalSize = sizeof() + length + 1;
     // OLD: ObjString *string = (ObjString *)malloc(totalSize); // Allocating memory
     ObjString *string = ALLOCATE_OBJ(ObjString, OBJ_STRING); // Allocating memory
     string->ownsChars = ownsChars;
     string->length = length;
+    string->hash = hash;
     memcpy(string->as.chars, chars, length); // old: string->chars = chars;
     string->as.chars[length] = '\0';
     return string;
+}
+
+// FNV-1a
+static uint32_t hashString(const char* key, int length) {
+    uint32_t hash = 216613621u;
+    for (int i = 0; i < length; i++)
+    {
+        hash ^= (uint8_t)key[i];
+        hash *= 16777619;
+    }
+    return hash;
 }
 
 ObjString *constString(const char *chars, int length)
@@ -69,5 +82,6 @@ ObjString *constString(const char *chars, int length)
 // Takes ownerships
 ObjString *takeString(char *chars, int length)
 {
-    return allocateString(chars, length, true);
+    uint32_t hash = hashString(chars, length);
+    return allocateString(chars, length, true, hash);
 }

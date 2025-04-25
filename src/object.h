@@ -31,6 +31,7 @@ struct ObjString
         char chars[]; // If heap.
         char *strPtr; // If ptr.
     } as;
+    uint32_t hash;
 };
 
 ObjString *
