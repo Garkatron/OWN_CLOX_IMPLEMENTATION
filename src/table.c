@@ -142,6 +142,21 @@ void tableAddAll(Table *from, Table *to)
         }
     }
 }
+/*
+It appears we have copy-pasted findEntry(). 
+There is a lot of redundancy, but also a couple of key differences. 
+First, we pass in the raw character array of the key we’re looking for instead of an ObjString. 
+At the point that we call this, we haven’t created an ObjString yet.
+
+Second, when checking to see if we found the key, we look at the actual strings. 
+We first see if they have matching lengths and hashes. 
+Those are quick to check and if they aren’t equal, the strings definitely aren’t the same.
+
+If there is a hash collision, we do an actual character-by-character string comparison.
+This is the one place in the VM where we actually test strings for textual equality. 
+We do it here to deduplicate strings and then the rest of the VM can take for granted that any two strings at different addresses in memory must have different contents.
+
+*/
 ObjString *tableFindString(Table *table, const char *chars, int length, uint32_t hash)
 {
     if (table->count == 0)
