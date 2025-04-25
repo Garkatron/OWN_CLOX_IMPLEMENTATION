@@ -38,6 +38,35 @@ static Entry *findEntry(Entry *entries, int capacity, ObjString *key) {
     index = (index + 1) % capacity;
 }
 
+/*
+1. Create a bucket array with capacity entries.
+2. Allocate the array, we initialize every element to be an empty bucket
+to be an empty bucket and then store the array(and its capacity) in the hash table's main struct.
+*/
+static void adjustCapacity(Table *table, int capacity) {
+    Entry *entries = ALLOCATE(Entry, capacity);
+    for (int i = 0; i < capacity; i++)
+    {
+        entries[i].key = NULL;
+        entries[i].value = NIL_VAL;
+    }
+
+    // re-insert everything
+    for (int i = 0; i < table->capacity; i++)
+    {
+        Entry *entry = &table->entries[i];
+        if (entries->key == NULL) continue;
+        
+        Entry *dest = findEntry(entries, capacity, entry->key);
+        dest->key = entry->key;
+        dest->value = entry->value;
+    }
+    
+    FREE_ARRAY(Entry, table->entries, table->capacity);
+    table->entries = entries;
+    table->capacity = capacity;
+}
+
 bool tableSet(Table *table, ObjString *key, Value value)
 {
     if (table->count + 1 > table->capacity * TABLE_MAX_LOAD)
