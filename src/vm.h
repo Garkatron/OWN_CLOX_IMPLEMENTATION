@@ -3,6 +3,7 @@
 #define STACK_MAX 256
 
 #include "chunk.h"
+#include "table.h"
 #include "value.h"
 
 typedef struct
@@ -13,6 +14,7 @@ typedef struct
     int stackCapacity;
     Value *stack;    // LIFO PILE
     Value *stackTop; // Points just past the last item
+    Table strings;
     Obj *objects;    // Objects list
 } VM;
 
