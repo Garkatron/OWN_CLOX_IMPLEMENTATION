@@ -7,6 +7,7 @@
 #include "value.h"
 
 #define TABLE_MAX_LOAD 0.75
+#define VALUE_HASH(value) (getHash(value))
 
 void initTable(Table *table)
 {
@@ -21,15 +22,58 @@ void freeTable(Table *table)
     initTable(table);
 }
 
+static uint32_t hashNumber(const void *data, size_t length)
+{
+    uint32_t hash = 216613621u;
+    const uint8_t *bytes = (const uint8_t *)data;
+    for (int i = 0; i < length; i++)
+    {
+        hash ^= bytes[i];
+        hash *= 16777619;
+    }
+    return hash;
+}
+
+static uint32_t getHash(Value value)
+{
+    switch (value.type)
+    {
+    case VAL_OBJ:
+        switch (OBJ_TYPE(value))
+        {
+        case OBJ_STRING:
+            return AS_STRING(value)->hash;
+
+        default:
+            return 0;
+        }
+
+    case VAL_NUMBER:
+    {
+        return hashNumber(&value.as.number, sizeof(double));
+    }
+
+    case VAL_BOOL:
+        return AS_BOOL(value) ? 1 : 0;
+
+    case VAL_NIL:
+        return 0;
+
+    default:
+        return 0;
+    }
+}
+
 /*
 Real core of hash-table.
 It's responsible for taking a key and an array of buckeys, and figuring
 out wich bucket the entry belong in.
 https://craftinginterpreters.com/hash-tables.html#hashing-strings:~:text=This%20function%20is,insert%20new%20ones.
 */
-static Entry *findEntry(Entry *entries, int capacity, ObjString *key)
+static Entry *findEntry(Entry *entries, int capacity, Value *key)
 {
-    uint32_t index = key->hash % capacity;
+
+    uint32_t index = VALUE_HASH(*key) % capacity;
     Entry *tombstone = NULL;
     for (;;)
     {
@@ -52,11 +96,11 @@ static Entry *findEntry(Entry *entries, int capacity, ObjString *key)
         {
             return entry;
         }
+        index = (index + 1) % capacity;
     }
-    index = (index + 1) % capacity;
 }
 
-bool tableGet(Table *table, ObjString *key, Value *value)
+bool tableGet(Table *table, Value *key, Value *value)
 {
     if (table->count == 0)
         return false;
@@ -99,7 +143,7 @@ static void adjustCapacity(Table *table, int capacity)
     table->capacity = capacity;
 }
 
-bool tableSet(Table *table, ObjString *key, Value value)
+bool tableSet(Table *table, Value *key, Value value)
 {
     if (table->count + 1 > table->capacity * TABLE_MAX_LOAD)
     {
@@ -116,7 +160,7 @@ bool tableSet(Table *table, ObjString *key, Value value)
     return isNewKey;
 }
 
-bool tableDelete(Table *table, ObjString *key)
+bool tableDelete(Table *table, Value *key)
 {
     if (table->count == 0)
         return false;
@@ -131,6 +175,7 @@ bool tableDelete(Table *table, ObjString *key)
     entry->value = BOOL_VAL(true);
     return true;
 }
+
 void tableAddAll(Table *from, Table *to)
 {
     for (int i = 0; i < from->capacity; i++)
@@ -143,40 +188,90 @@ void tableAddAll(Table *from, Table *to)
     }
 }
 /*
-It appears we have copy-pasted findEntry(). 
-There is a lot of redundancy, but also a couple of key differences. 
-First, we pass in the raw character array of the key we’re looking for instead of an ObjString. 
+It appears we have copy-pasted findEntry().
+There is a lot of redundancy, but also a couple of key differences.
+First, we pass in the raw character array of the key we’re looking for instead of an ObjString.
 At the point that we call this, we haven’t created an ObjString yet.
 
-Second, when checking to see if we found the key, we look at the actual strings. 
-We first see if they have matching lengths and hashes. 
+Second, when checking to see if we found the key, we look at the actual strings.
+We first see if they have matching lengths and hashes.
 Those are quick to check and if they aren’t equal, the strings definitely aren’t the same.
 
 If there is a hash collision, we do an actual character-by-character string comparison.
-This is the one place in the VM where we actually test strings for textual equality. 
+This is the one place in the VM where we actually test strings for textual equality.
 We do it here to deduplicate strings and then the rest of the VM can take for granted that any two strings at different addresses in memory must have different contents.
 
 */
-ObjString *tableFindString(Table *table, const char *chars, int length, uint32_t hash)
+// Busca cualquier valor en la tabla.
+// Retorna un puntero al valor internado, o NULL si no existe.
+Value *tableFindValue(Table *table, Value *key)
 {
     if (table->count == 0)
         return NULL;
+
+    uint32_t hash = VALUE_HASH(*key);
     uint32_t index = hash % table->capacity;
+
     for (;;)
     {
         Entry *entry = &table->entries[index];
+
         if (entry->key == NULL)
         {
-            // Stop if we find an empty no-tombstone entry.
             if (IS_NIL(entry->value))
-                return;
+            {
+                return NULL; // Slot vacío, sin tombstone: no encontrado.
+            }
         }
-        else if (entry->key->length == length && entry->key->hash == hash)
+        else
         {
-            
-            const char* keyChars = entry->key->ownsChars ? entry->key->as.chars : entry->key->as.strPtr;
-            if (memcmp(keyChars, chars, length) == 0) return entry->key; // We found it.
-            
+            Value *candidate = entry->key;
+            if (candidate->type == key->type)
+            {
+                switch (key->type)
+                {
+                case VAL_BOOL:
+                    if (AS_BOOL(*candidate) == AS_BOOL(*key))
+                    {
+                        return candidate;
+                    }
+                    break;
+
+                case VAL_NIL:
+                    return candidate; // Solo hay un valor nil.
+
+                case VAL_NUMBER:
+                    if (AS_NUMBER(*candidate) == AS_NUMBER(*key))
+                    {
+                        return candidate;
+                    }
+                    break;
+
+                case VAL_OBJ:
+                {
+                    if (OBJ_TYPE(*candidate) == OBJ_STRING &&
+                        OBJ_TYPE(*key) == OBJ_STRING)
+                    {
+                        ObjString *candStr = AS_STRING(*candidate);
+                        ObjString *keyStr = AS_STRING(*key);
+                        if (candStr->length == keyStr->length &&
+                            candStr->hash == keyStr->hash)
+                        {
+                            const char *keyChars = keyStr->ownsChars ? keyStr->as.chars : keyStr->as.strPtr;
+                            const char *candChars = candStr->ownsChars ? candStr->as.chars : candStr->as.strPtr;
+                            if (memcmp(keyChars, candChars, candStr->length) == 0)
+                                return entry->key; // We found it.
+                        }
+                    }
+                    break;
+                }
+
+                default:
+                    break;
+                }
+            }
         }
+
+        index = (index + 1) % table->capacity;
     }
 }

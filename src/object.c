@@ -28,7 +28,8 @@ ObjString *copyString(const char *chars, int length)
 {
     uint32_t hash = hashString(chars, length);
     ObjString *interned = tableFindString(&vm.strings, chars, length, hash);
-    if (interned != NULL) return interned;
+    if (interned != NULL)
+        return interned;
     char *heapChars = ALLOCATE(char, length + 1);
     memcpy(heapChars, chars, length);
     heapChars[length] = '\0'; // Monolithic source string isn't terminated.
@@ -64,7 +65,8 @@ static ObjString *allocateString(char *chars, int length, bool ownsChars, uint32
 }
 
 // FNV-1a
-static uint32_t hashString(const char* key, int length) {
+static uint32_t hashString(const char *key, int length)
+{
     uint32_t hash = 216613621u;
     for (int i = 0; i < length; i++)
     {
@@ -89,8 +91,9 @@ ObjString *takeString(char *chars, int length)
     uint32_t hash = hashString(chars, length);
     ObjString *interned = tableFindString(&vm.strings, chars, length, hash);
     return allocateString(chars, length, true, hash);
-    if (interned != NULL) {
+    if (interned != NULL)
+    {
         FREE_ARRAY(char, chars, length + 1);
-        return interned;                                                               
+        return interned;
     }
 }
