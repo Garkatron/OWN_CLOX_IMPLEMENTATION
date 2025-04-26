@@ -257,8 +257,9 @@ Value *tableFindValue(Table *table, Value *key)
                         if (candStr->length == keyStr->length &&
                             candStr->hash == keyStr->hash)
                         {
-                            const char *keyChars = keyStr->ownsChars ? keyStr->as.chars : keyStr->as.strPtr;
-                            const char *candChars = candStr->ownsChars ? candStr->as.chars : candStr->as.strPtr;
+                            const char *keyChars = AS_CSTRING(*key);
+                            const char *candChars = AS_CSTRING(*candidate);
+
                             if (memcmp(keyChars, candChars, candStr->length) == 0)
                                 return entry->key; // We found it.
                         }
@@ -269,6 +270,39 @@ Value *tableFindValue(Table *table, Value *key)
                 default:
                     break;
                 }
+            }
+        }
+
+        index = (index + 1) % table->capacity;
+    }
+}
+
+ObjString *tableFindString(Table *table, const char *chars,
+                           int length, uint32_t hash)
+{
+    if (table->count == 0)
+        return NULL;
+
+    uint32_t index = hash % table->capacity;
+    for (;;)
+    {
+        Entry *entry = &table->entries[index];
+        if (entry->key == NULL)
+        {
+            // Stop if we find an empty non-tombstone entry.
+            if (IS_NIL(entry->value))
+                return NULL;
+        }
+        if (IS_OBJ(*entry->key) && OBJ_TYPE(*entry->key) == OBJ_STRING)
+        {
+            ObjString *candStr = AS_STRING(*entry->key);
+            if (candStr->length == length &&
+                candStr->hash == hash)
+            {
+                const char *candChars = candStr->chars;
+
+                if (memcmp(chars, candChars, candStr->length) == 0)
+                    return candStr; // We found it.
             }
         }
 
