@@ -250,3 +250,10 @@ I'll convert the other value to a string, because it's a common approach (Java, 
 
 If you’d like to learn more (and you should, because some of these are really cool), look into “double hashing”, “cuckoo hashing”, “Robin Hood hashing”, and anything those lead you to.
 
+##### Challenges
+
+2.
+https://github.com/python/cpython/blob/main/Objects/dictobject.c
+https://github.com/rust-lang/hashbrown
+https://github.com/abseil/abseil-cpp/blob/master/absl/container/internal/raw_hash_set.h
+https://github.com/abseil/abseil-cpp/blob/master/absl/container/internal/raw_hash_set.h
