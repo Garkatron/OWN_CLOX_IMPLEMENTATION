@@ -249,29 +249,3 @@ I'll convert the other value to a string, because it's a common approach (Java, 
 #### Hash tables
 
 If you’d like to learn more (and you should, because some of these are really cool), look into “double hashing”, “cuckoo hashing”, “Robin Hood hashing”, and anything those lead you to.
-
-##### Challenges
-
-2.
-ToDo:
-https://github.com/python/cpython/blob/main/Objects/dictobject.c
-https://github.com/rust-lang/hashbrown
-https://github.com/abseil/abseil-cpp/blob/master/absl/container/internal/raw_hash_set.h
-https://www.digitalocean.com/community/tutorials/hash-table-in-c-plus-plus
-https://benhoyt.com/writings/hash-table-in-c/
-https://github.com/jamesroutley/write-a-hash-table?tab=readme-ov-file
-https://github.com/stclib/STC
-https://www.geeksforgeeks.org/implementation-of-hash-table-in-c-using-separate-chaining/
-https://www.cs.yale.edu/homes/aspnes/pinewiki/C(2f)HashTables.html
-https://medium.com/jungletronics/hash-tables-in-c-5293c2bf6061
-
-3.
-https://www.reddit.com/r/C_Programming/comments/1d3i962/an_extensive_benchmark_of_c_and_c_hash_tables/
-https://martin.ankerl.com/2022/08/27/hashmap-bench-01/
-https://github.com/ashvardanian/HashTableBenchmark
-https://github.com/renzibei/hashtable-bench
-https://blog.heycoach.in/hash-table-performance-analysis-with-large-datasets-in-c/
-https://preshing.com/20110603/hash-table-performance-tests/
-https://jacksonallan.github.io/c_cpp_hash_tables_benchmark/
-https://www.hackerearth.com/practice/data-structures/hash-tables/basics-of-hash-tables/tutorial/
-https://www.cs.yale.edu/homes/aspnes/pinewiki/C%282f%29HashTables.html
