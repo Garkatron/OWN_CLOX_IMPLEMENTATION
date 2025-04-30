@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "memory.h"
 #include "object.h"
 #include "value.h"
 #include "vm.h"
 #include "object.h"
-#include "memory.h"
 #include "table.h"
 
 // Avoids redundantly cast to a void*.
@@ -32,9 +30,11 @@ static ObjString *allocateString(char *chars, int length, bool ownsChars, uint32
     string->ownsChars = ownsChars;
     string->length = length;
     string->hash = hash;
-    tableSet(&vm.strings, string, NIL_VAL);
     memcpy(string->chars, chars, length); // old: string->chars = chars;
     string->chars[length] = '\0';
+    Value key = OBJ_VAL(string);
+    Value value = NIL_VAL;
+    tableSet(&vm.strings, &key, value);
     return string;
 }
 
@@ -51,17 +51,19 @@ static uint32_t hashString(const char *key, int length)
 }
 
 // Allocate a new array on the heap. (Big as the string)
-Value *copyString(const char *chars, int length)
-{
+Value copyString(const char *chars, int length) {
     uint32_t hash = hashString(chars, length);
-    Value *interned = tableFindString(&vm.strings, chars, length, hash);
-    if (interned != NULL)
-        return interned;
+    ObjString *interned = tableFindString(&vm.strings, chars, length, hash);
+    if (interned != NULL) return OBJ_VAL(interned);
+
     char *heapChars = ALLOCATE(char, length + 1);
     memcpy(heapChars, chars, length);
-    heapChars[length] = '\0'; // Monolithic source string isn't terminated.
-    return allocateString(heapChars, length, false, hash);
+    heapChars[length] = '\0';
+
+    ObjString *str = allocateString(heapChars, length, true, hash);
+    return OBJ_VAL(str);
 }
+
 
 void printObject(Value value)
 {
@@ -86,14 +88,12 @@ ObjString *constString(const char *chars, int length)
 }
 
 // Takes ownerships
-ObjString *takeString(char *chars, int length)
-{
+ObjString *takeString(char *chars, int length) {
     uint32_t hash = hashString(chars, length);
     ObjString *interned = tableFindString(&vm.strings, chars, length, hash);
-    return allocateString(chars, length, true, hash);
-    if (interned != NULL)
-    {
+    if (interned != NULL) {
         FREE_ARRAY(char, chars, length + 1);
         return interned;
     }
+    return allocateString(chars, length, true, hash);
 }

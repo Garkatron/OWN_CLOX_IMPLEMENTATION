@@ -23,6 +23,7 @@ static void repl()
 
 static char *readFile(const char *path)
 {
+   printf("Reading file: %s\n", path);
    FILE *file = fopen(path, "rb");
    if (file == NULL)
    {
@@ -49,6 +50,7 @@ static char *readFile(const char *path)
    buffer[bytesRead] = '\0'; // Add null terminator.
 
    fclose(file);
+   printf("File read successfully\n");
    return buffer;
 }
 
@@ -66,6 +68,7 @@ static void runFile(const char *path)
 
 int main(int argc, const char *argv[])
 {
+   printf("Working...\n");
    initVM();
 
    if (argc == 1)
@@ -73,6 +76,7 @@ int main(int argc, const char *argv[])
    }
    else if (argc == 2)
    {
+      printf("Running file...\n");
       runFile(argv[1]);
    }
    else

@@ -157,8 +157,6 @@ static InterpretResult run()
         {
         case OP_RETURN:
         {
-            printValue(pop());
-            printf("\n");
             return INTERPRET_OK;
         }
         case OP_CONSTANT:
@@ -244,6 +242,12 @@ static InterpretResult run()
             BINARY_OP(BOOL_VAL, <);
             break;
 
+        case OP_PRINT: {
+            printValue(pop());
+            printf("\n");
+            break;
+        }
+
 #undef READ_BYTE
 #undef READ_CONSTANT
 #undef BINARY_OP
@@ -264,6 +268,8 @@ InterpretResult interpret(const char *source)
     vm.chunk = &chunk;
     vm.ip = vm.chunk->code;
     InterpretResult result = run();
+    printf("\nDisassembleChunk...\n");
+    disassembleChunk(&chunk, "default");
     freeChunk(&chunk);
     return result;
 }

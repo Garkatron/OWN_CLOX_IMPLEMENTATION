@@ -130,6 +130,22 @@ static void consume(TokenType type, const char *message)
     errorAtCurrent(message);
 }
 
+// The check() function returns true if the current token has the given type.
+static bool check(TokenType type) {
+    return parser.current.type == type;
+}
+
+/*
+You may recognize it from jlox. 
+If the current token has the given type, we consume the token and return true. 
+Otherwise we leave the token alone and return false.
+*/
+static bool match(TokenType type) {
+    if(!check(type)) return false;
+    advance();
+    return true;
+}
+
 // Adds a byte to the chunk
 static void emitByte(uint8_t byte)
 {
@@ -180,7 +196,7 @@ static void endCompiler()
 
 static void expression();
 static void statement();
-static void declaration();
+// static void declaration();
 static ParseRule *getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 
@@ -277,7 +293,7 @@ static void number()
 // Takes string's characters from lexeme and wraps it in a Value then puts in the constant table.
 static void string()
 {
-    emitConstant(*copyString(parser.previous.start + 1, parser.previous.length - 2));
+    emitConstant(copyString(parser.previous.start + 1, parser.previous.length - 2));
 }
 
 // Prefix the expression.
@@ -392,6 +408,12 @@ static void expression()
     parsePrecedence(PREC_ASSIGNMENT);
 }
 
+static void printStatement() {
+    expression();
+    consume(TOKEN_SEMICOLON, "Expect ';' after value.");
+    emitByte(OP_PRINT);
+}
+
 static void statement() {
     if (match(TOKEN_PRINT)) {
         printStatement();
@@ -407,7 +429,8 @@ bool compile(const char *source, Chunk *chunk)
     advance();
     while (!match(TOKEN_EOF))
     {
-        declaration();
+        //declaration();
+        statement();
     }
     
     endCompiler();

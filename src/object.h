@@ -33,7 +33,7 @@ struct ObjString
 ObjString *
 takeString(char *chars, int length);
 
-Value *copyString(const char *chars, int length);
+Value copyString(const char *chars, int length);
 ObjString *constString(const char *chars, int length);
 
 void printObject(Value value);
