@@ -264,3 +264,14 @@ https://github.com/stclib/STC
 https://www.geeksforgeeks.org/implementation-of-hash-table-in-c-using-separate-chaining/
 https://www.cs.yale.edu/homes/aspnes/pinewiki/C(2f)HashTables.html
 https://medium.com/jungletronics/hash-tables-in-c-5293c2bf6061
+
+3.
+https://www.reddit.com/r/C_Programming/comments/1d3i962/an_extensive_benchmark_of_c_and_c_hash_tables/
+https://martin.ankerl.com/2022/08/27/hashmap-bench-01/
+https://github.com/ashvardanian/HashTableBenchmark
+https://github.com/renzibei/hashtable-bench
+https://blog.heycoach.in/hash-table-performance-analysis-with-large-datasets-in-c/
+https://preshing.com/20110603/hash-table-performance-tests/
+https://jacksonallan.github.io/c_cpp_hash_tables_benchmark/
+https://www.hackerearth.com/practice/data-structures/hash-tables/basics-of-hash-tables/tutorial/
+https://www.cs.yale.edu/homes/aspnes/pinewiki/C%282f%29HashTables.html
