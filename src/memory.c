@@ -25,10 +25,20 @@ static void freeObject(Obj *object)
     switch (object->type)
     {
     case OBJ_STRING:
+    {
         ObjString *string = (ObjString *)object;
-        FREE_ARRAY(char, string->chars, string->length + 1);
-        FREE(ObjString, object);
-        break;
+
+        if (string->ownsChars)
+        {
+            FREE_ARRAY(char, string->chars, string->length + 1);
+        }
+        else
+        {
+            FREE(ObjString, object);
+        }
+    }
+
+    break;
 
     default:
         break;

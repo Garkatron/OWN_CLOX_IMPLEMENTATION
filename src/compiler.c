@@ -275,7 +275,7 @@ static void number()
 // Takes string's characters from lexeme and wraps it in a Value then puts in the constant table.
 static void string()
 {
-    emitConstant(OBJ_VAL(copyString(parser.previous.start + 1, parser.previous.length - 2)));
+    emitConstant(*copyString(parser.previous.start + 1, parser.previous.length - 2));
 }
 
 // Prefix the expression.
