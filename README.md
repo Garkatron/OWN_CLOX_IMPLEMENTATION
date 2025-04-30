@@ -253,7 +253,14 @@ If you’d like to learn more (and you should, because some of these are really 
 ##### Challenges
 
 2.
+ToDo:
 https://github.com/python/cpython/blob/main/Objects/dictobject.c
 https://github.com/rust-lang/hashbrown
 https://github.com/abseil/abseil-cpp/blob/master/absl/container/internal/raw_hash_set.h
-https://github.com/abseil/abseil-cpp/blob/master/absl/container/internal/raw_hash_set.h
+https://www.digitalocean.com/community/tutorials/hash-table-in-c-plus-plus
+https://benhoyt.com/writings/hash-table-in-c/
+https://github.com/jamesroutley/write-a-hash-table?tab=readme-ov-file
+https://github.com/stclib/STC
+https://www.geeksforgeeks.org/implementation-of-hash-table-in-c-using-separate-chaining/
+https://www.cs.yale.edu/homes/aspnes/pinewiki/C(2f)HashTables.html
+https://medium.com/jungletronics/hash-tables-in-c-5293c2bf6061
