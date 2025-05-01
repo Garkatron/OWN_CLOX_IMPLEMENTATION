@@ -75,15 +75,23 @@ static Entry *findEntry(Entry *entries, int capacity, Value key)
     uint32_t index = VALUE_HASH(key) % capacity;
     Entry *tombstone = NULL;
 
-    for (;;) {
+    for (;;)
+    {
         Entry *entry = &entries[index];
-        if (IS_NIL(entry->key)) {
-            if (IS_NIL(entry->value)) {
+        if (IS_NIL(entry->key))
+        {
+            if (IS_NIL(entry->value))
+            {
                 return tombstone != NULL ? tombstone : entry;
-            } else {
-                if (tombstone == NULL) tombstone = entry;
             }
-        } else if (valuesEqual(entry->key, key)) {
+            else
+            {
+                if (tombstone == NULL)
+                    tombstone = entry;
+            }
+        }
+        else if (valuesEqual(entry->key, key))
+        {
             return entry;
         }
 
@@ -93,15 +101,16 @@ static Entry *findEntry(Entry *entries, int capacity, Value key)
 
 bool tableGet(Table *table, Value key, Value *value)
 {
-    if (table->count == 0) return false;
+    if (table->count == 0)
+        return false;
 
     Entry *entry = findEntry(table->entries, table->capacity, key);
-    if (IS_NIL(entry->key)) return false;
+    if (IS_NIL(entry->key))
+        return false;
 
     *value = entry->value;
     return true;
 }
-
 
 /*
 1. Create a bucket array with capacity entries.
@@ -122,7 +131,8 @@ static void adjustCapacity(Table *table, int capacity)
     for (int i = 0; i < table->capacity; i++)
     {
         Entry *entry = &table->entries[i];
-        if (IS_NIL(entry->key)) continue;
+        if (IS_NIL(entry->key))
+            continue;
 
         Entry *dest = findEntry(entries, capacity, entry->key);
         dest->key = entry->key;
@@ -135,17 +145,18 @@ static void adjustCapacity(Table *table, int capacity)
     table->capacity = capacity;
 }
 
-
 bool tableSet(Table *table, Value key, Value value)
 {
-    if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
+    if (table->count + 1 > table->capacity * TABLE_MAX_LOAD)
+    {
         int capacity = GROW_CAPACITY(table->capacity);
         adjustCapacity(table, capacity);
     }
 
     Entry *entry = findEntry(table->entries, table->capacity, key);
     bool isNewKey = IS_NIL(entry->key);
-    if (isNewKey && IS_NIL(entry->value)) {
+    if (isNewKey && IS_NIL(entry->value))
+    {
         table->count++;
     }
 
@@ -153,7 +164,6 @@ bool tableSet(Table *table, Value key, Value value)
     entry->value = value;
     return isNewKey;
 }
-
 
 bool tableDelete(Table *table, Value *key)
 {
@@ -263,36 +273,35 @@ Value *tableFindValue(Table *table, Value *key)
     }
 }
 
-
 ObjString *tableFindString(Table *table, const char *chars,
-    int length, uint32_t hash)
+                           int length, uint32_t hash)
 {
-if (table->count == 0)
-return NULL;
+    if (table->count == 0)
+        return NULL;
 
-uint32_t index = hash % table->capacity;
-for (;;)
-{
-Entry *entry = &table->entries[index];
-if (IS_NIL(entry->key))
-{
-// Stop if we find an empty non-tombstone entry.
-if (IS_NIL(entry->value))
-return NULL;
-}
-if (IS_OBJ(entry->key) && OBJ_TYPE(entry->key) == OBJ_STRING)
-{
-ObjString *candStr = AS_STRING(entry->key);
-if (candStr->length == length &&
-candStr->hash == hash)
-{
-const char *candChars = candStr->chars;
+    uint32_t index = hash % table->capacity;
+    for (;;)
+    {
+        Entry *entry = &table->entries[index];
+        if (IS_NIL(entry->key))
+        {
+            // Stop if we find an empty non-tombstone entry.
+            if (IS_NIL(entry->value))
+                return NULL;
+        }
+        if (IS_OBJ(entry->key) && OBJ_TYPE(entry->key) == OBJ_STRING)
+        {
+            ObjString *candStr = AS_STRING(entry->key);
+            if (candStr->length == length &&
+                candStr->hash == hash)
+            {
+                const char *candChars = candStr->chars;
 
-if (memcmp(chars, candChars, candStr->length) == 0)
-return candStr; // We found it.
-}
-}
+                if (memcmp(chars, candChars, candStr->length) == 0)
+                    return candStr; // We found it.
+            }
+        }
 
-index = (index + 1) % table->capacity;
-}
+        index = (index + 1) % table->capacity;
+    }
 }
