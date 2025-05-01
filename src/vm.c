@@ -39,9 +39,11 @@ void initVM()
     resetStack();
     vm.objects = NULL;
     initTable(&vm.strings);
+    initTable(&vm.globals);
 }
 void freeVM()
 {
+    freeTable(&vm.globals);
     freeTable(&vm.strings);
     freeObjects();
 }
@@ -124,6 +126,7 @@ static InterpretResult run()
 {
 #define READ_BYTE() (*vm.ip++)                                    // Next instruction
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()]) // Next byte from bytecode
+#define READ_STRING() AS_STRING(READ_CONSTANT()) // It reads a one-byte operand from the bytecode chunk. It treats that as an index into the chunk’s constant table and returns the string at that index.
     for (;;)
     {
 #define BINARY_OP(valueType, op)                        \
@@ -250,8 +253,21 @@ static InterpretResult run()
 
         case OP_POP: pop(); break;
 
+        case OP_DEFINE_GLOBAL: {
+            /*
+                Note that we don’t pop the value until after we add it to the hash table. 
+                That ensures the VM can still find the value if a garbage collection is triggered right in the middle of adding it to the hash table. 
+                That’s a distinct possibility since the hash table requires dynamic allocation when it resizes.
+            */
+            Value val = READ_CONSTANT();
+            tableSet(&vm.globals, &val, peek(0));
+            pop();
+            break;
+        }
+
 #undef READ_BYTE
 #undef READ_CONSTANT
+#undef READ_STRING
 #undef BINARY_OP
         }
     }
