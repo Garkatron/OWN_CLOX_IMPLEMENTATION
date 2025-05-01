@@ -248,6 +248,8 @@ static InterpretResult run()
             break;
         }
 
+        case OP_POP: pop(); break;
+
 #undef READ_BYTE
 #undef READ_CONSTANT
 #undef BINARY_OP
