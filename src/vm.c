@@ -38,8 +38,8 @@ void initVM()
     vm.stackCount = 0;
     resetStack();
     vm.objects = NULL;
-    initTable(&vm.strings);
     initTable(&vm.globals);
+    initTable(&vm.strings);
 }
 void freeVM()
 {
@@ -97,7 +97,6 @@ static void concatenate()
     memcpy(chars, a->chars, a->length);
     memcpy(chars + a->length, b->chars, b->length);
     chars[length] = '\0';
-
     ObjString *result = takeString(chars, length);
     push(OBJ_VAL(result));
 }
@@ -167,9 +166,12 @@ static InterpretResult run()
         case OP_CONSTANT:
         {
             Value constant = READ_CONSTANT();
+            printValue(constant);  // Asumiendo que printValue está definida en tu código para imprimir correctamente
+            printf("\n");  // Para añadir una nueva línea después de imprimir el valor
             push(constant);
             break;
         }
+        
         case OP_CONSTANT_LONG:
         {
             uint8_t byte1 = READ_BYTE();

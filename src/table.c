@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "memory.h"
 #include "object.h"
@@ -49,20 +50,19 @@ static uint32_t getHash(Value value)
         }
 
     case VAL_NUMBER:
-    {
         return hashNumber(&value.as.number, sizeof(double));
-    }
 
     case VAL_BOOL:
-        return AS_BOOL(value) ? 1 : 0;
+        return AS_BOOL(value) ? 1231 : 1237;
 
     case VAL_NIL:
-        return 0;
+        return 2166136261u; 
 
     default:
         return 0;
     }
 }
+
 
 /*
 Real core of hash-table.
@@ -72,6 +72,7 @@ https://craftinginterpreters.com/hash-tables.html#hashing-strings:~:text=This%20
 */
 static Entry *findEntry(Entry *entries, int capacity, Value key)
 {
+    // Gets the hash of the value or creates it
     uint32_t index = VALUE_HASH(key) % capacity;
     Entry *tombstone = NULL;
 
@@ -273,8 +274,7 @@ Value *tableFindValue(Table *table, Value *key)
     }
 }
 
-ObjString *tableFindString(Table *table, const char *chars,
-                           int length, uint32_t hash)
+ObjString *tableFindString(Table *table, const char *chars, int length, uint32_t hash)
 {
     if (table->count == 0)
         return NULL;

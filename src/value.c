@@ -48,6 +48,7 @@ void printValue(Value value)
         break;
 
     default:
+        printf("No value.");
         break;
     }
 }
