@@ -7,7 +7,7 @@
 // Key/Value pair.
 typedef struct
 {
-    Value *key;
+    Value key;
     Value value;
 } Entry;
 /*
@@ -30,8 +30,8 @@ Adds the given key/value pair to the given hash table.
 If a the key exists it get overwrited.
 The function returns true if the entry was added.
 */
-bool tableSet(Table *table, Value *key, Value value);
-bool tableGet(Table *table, Value *key, Value *value);
+bool tableSet(Table *table, Value key, Value value);
+bool tableGet(Table *table, Value key, Value *value);
 bool tableDelete(Table *table, Value *key);
 void tableAddAll(Table *from, Table *to);
 Value *tableFindValue(Table *table, Value *key);

@@ -126,6 +126,8 @@ static InterpretResult run()
 {
 #define READ_BYTE() (*vm.ip++)                                    // Next instruction
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()]) // Next byte from bytecode
+#define READ_CONSTANT_LONG() \
+    (vm.chunk->constants.values[(READ_BYTE() << 16) | (READ_BYTE() << 8) | READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT()) // It reads a one-byte operand from the bytecode chunk. It treats that as an index into the chunk’s constant table and returns the string at that index.
     for (;;)
     {
@@ -229,6 +231,7 @@ static InterpretResult run()
             break;
         case OP_FALSE:
             push(BOOL_VAL(false));
+            break;
 
         case OP_EQUAL:
         {
@@ -260,13 +263,25 @@ static InterpretResult run()
                 That’s a distinct possibility since the hash table requires dynamic allocation when it resizes.
             */
             Value val = READ_CONSTANT();
-            tableSet(&vm.globals, &val, peek(0));
+            tableSet(&vm.globals, val, peek(0));
             pop();
+            break;
+        }
+
+        case OP_GET_GLOBAL: {
+            Value kval = READ_CONSTANT();
+            Value value;
+            if (!tableGet(&vm.globals, kval, &value)) {
+                runtimeError("Undefined variable.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            push(value);
             break;
         }
 
 #undef READ_BYTE
 #undef READ_CONSTANT
+#undef READ_CONSTANT_LONG
 #undef READ_STRING
 #undef BINARY_OP
         }

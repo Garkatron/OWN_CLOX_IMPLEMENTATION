@@ -16,7 +16,7 @@ typedef struct
     bool panicMode; // Flag to enter in panic mode and re-sync the parser with the code.
 } Parser;
 
-// Lowes to heighest precedense.
+// Lowest to highest precedence.
 typedef enum
 {
     PREC_NONE,
@@ -174,7 +174,7 @@ static uint8_t makeConstant(Value value)
     int constant = addConstant(currentChunk(), value);
     if (constant > UINT8_MAX)
     {
-        error("To many constants in one chunk.");
+        error("Too many constants in one chunk.");
         return 0;
     }
     return (uint8_t)constant;
@@ -313,6 +313,15 @@ static void string()
     emitConstant(copyString(parser.previous.start + 1, parser.previous.length - 2));
 }
 
+static void namedVariable(Token name) {
+    uint8_t arg = identifierConstant(&name);
+    emitBytes(OP_GET_GLOBAL, arg);
+}
+
+static void variable() {
+    namedVariable(parser.previous);
+}
+
 // Prefix the expression.
 static void unary()
 {
@@ -367,7 +376,7 @@ ParseRule rules[] = {
     [TOKEN_GREATER_EQUAL] = {NULL, binary, PREC_COMPARISON},
     [TOKEN_LESS] = {NULL, binary, PREC_COMPARISON},
     [TOKEN_LESS_EQUAL] = {NULL, binary, PREC_COMPARISON},
-    [TOKEN_IDENTIFIER] = {NULL, NULL, PREC_NONE},
+    [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
     [TOKEN_STRING] = {string, NULL, PREC_NONE},
     [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
     [TOKEN_AND] = {NULL, NULL, PREC_NONE},
@@ -408,7 +417,9 @@ static void parsePrecedence(Precedence precedence)
     {
         advance();
         ParseFn infixRule = getRule(parser.previous.type)->infix;
-        infixRule();
+        if (infixRule != NULL) {
+            infixRule();
+        }
     }
 }
 
@@ -436,6 +447,32 @@ static void varDeclaration() {
     defineVariable(global);
 }
 
+static void synchronize()
+{
+    parser.panicMode = false;
+    while (parser.current.type != TOKEN_EOF)
+    {
+        if (parser.previous.type == TOKEN_SEMICOLON)
+            return;
+        switch (parser.current.type)
+        {
+        case TOKEN_CLASS:
+        case TOKEN_FUN:
+        case TOKEN_VAR:
+        case TOKEN_FOR:
+        case TOKEN_IF:
+        case TOKEN_WHILE:
+        case TOKEN_PRINT:
+        case TOKEN_RETURN:
+            return;
+        default:;
+        }
+
+        advance();
+    }
+}
+
+
 static void declaration()
 {
     if(match(TOKEN_VAR)) {
@@ -461,30 +498,6 @@ static void printStatement()
     emitByte(OP_PRINT);
 }
 
-static void synchronize()
-{
-    parser.panicMode = false;
-    while (parser.current.type != TOKEN_EOF)
-    {
-        if (parser.previous.type == TOKEN_SEMICOLON)
-            return;
-        switch (parser.current.type)
-        {
-        case TOKEN_CLASS:
-        case TOKEN_FUN:
-        case TOKEN_VAR:
-        case TOKEN_FOR:
-        case TOKEN_IF:
-        case TOKEN_WHILE:
-        case TOKEN_PRINT:
-        case TOKEN_RETURN:
-            return;
-        default:;
-        }
-
-        advance();
-    }
-}
 
 static void statement()
 {

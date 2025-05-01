@@ -34,7 +34,7 @@ static ObjString *allocateString(char *chars, int length, bool ownsChars, uint32
     string->chars[length] = '\0';
     Value key = OBJ_VAL(string);
     Value value = NIL_VAL;
-    tableSet(&vm.strings, &key, value);
+    tableSet(&vm.strings, key, value);
     return string;
 }
 
