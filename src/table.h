@@ -37,6 +37,8 @@ void tableAddAll(Table *from, Table *to);
 Value *tableFindValue(Table *table, Value *key);
 ObjString *tableFindString(Table *table, const char *chars,
                            int length, uint32_t hash);
+void tablePrintContent(Table *table);
+
 /*
 You pass in a table and a key.
 If it finds an entry with that key, it returns true, otherwise it returns false. If the entry exists, the value output parameter points to the resulting value.
