@@ -7,28 +7,36 @@
 #include "memory.h"
 #include "compiler.h"
 #include "value.h"
+#include "table.h"
 #include <string.h>
 
 VM vm;
 
 static void resetStack()
 {
+    if (vm.stack != NULL) {
+        free(vm.stack);
+    } 
+    vm.stack = ALLOCATE(Value, vm.stackCapacity);
     vm.stackTop = vm.stack;
-    vm.stackCapacity = STACK_MAX;
     vm.stackCount = 0;
 }
+        
 
 static void runtimeError(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
+    fprintf(stderr, "\033[1;31m");
     vfprintf(stderr, format, args);
+    fprintf(stderr, "\033[0m");
     va_end(args);
     fputs("\n", stderr);
 
     size_t instruction = vm.ip - vm.chunk->code - 1;
     int line = vm.chunk->lines[instruction].line;
-    fprintf(stderr, "[line %d] in script\n", line);
+
+    fprintf(stderr, "\033[1;31m[line %d] in script\033[0m\n", line);
     resetStack();
 }
 
@@ -45,20 +53,27 @@ void freeVM()
 {
     freeTable(&vm.globals);
     freeTable(&vm.strings);
+    free(vm.stack);
     freeObjects();
 }
-
 void push(Value value)
 {
-    vm.stackCount++;
-    if (vm.stackCount > vm.stackCapacity)
-    {
-        int oldCount = vm.stackCapacity;
-        vm.stackCapacity = GROW_CAPACITY(vm.stackCapacity);
-        vm.stack = GROW_ARRAY(Value, &vm.stack, oldCount, vm.stackCount);
+    if (vm.stack == NULL) {
+        fprintf(stderr, "Fatal error: stack not initialized.\n");
+        exit(1);
     }
+    if (vm.stackCount >= vm.stackCapacity)
+    {
+
+        int oldCapacity = vm.stackCapacity;
+        vm.stackCapacity = GROW_CAPACITY(oldCapacity);
+        vm.stack = GROW_ARRAY(Value, vm.stack, oldCapacity, vm.stackCapacity);
+        vm.stackTop = vm.stack + vm.stackCount;
+    }
+
     *vm.stackTop = value;
     vm.stackTop++;
+    vm.stackCount++;
 }
 
 Value pop()
@@ -155,7 +170,6 @@ static InterpretResult run()
         disassembleInstruction(vm.chunk,
                                (int)(vm.ip - vm.chunk->code));
 #endif
-
         uint8_t instruction;
         switch (instruction = READ_BYTE())
         {
@@ -166,12 +180,10 @@ static InterpretResult run()
         case OP_CONSTANT:
         {
             Value constant = READ_CONSTANT();
-            printValue(constant);  // Asumiendo que printValue está definida en tu código para imprimir correctamente
-            printf("\n");  // Para añadir una nueva línea después de imprimir el valor
             push(constant);
             break;
         }
-        
+
         case OP_CONSTANT_LONG:
         {
             uint8_t byte1 = READ_BYTE();
@@ -192,6 +204,8 @@ static InterpretResult run()
             push(NUMBER_VAL(-AS_NUMBER(pop())));
             break;
         case OP_ADD:
+        {
+
             if (IS_STRING(peek(0)) && IS_STRING(peek(1)))
             {
                 concatenate();
@@ -208,6 +222,7 @@ static InterpretResult run()
                 return INTERPRET_RUNTIME_ERROR;
             }
             break;
+        }
         case OP_SUBTRACT:
             BINARY_OP(NUMBER_VAL, -);
             break;
@@ -250,18 +265,22 @@ static InterpretResult run()
             BINARY_OP(BOOL_VAL, <);
             break;
 
-        case OP_PRINT: {
+        case OP_PRINT:
+        {
             printValue(pop());
             printf("\n");
             break;
         }
 
-        case OP_POP: pop(); break;
+        case OP_POP:
+            pop();
+            break;
 
-        case OP_DEFINE_GLOBAL: {
+        case OP_DEFINE_GLOBAL:
+        {
             /*
-                Note that we don’t pop the value until after we add it to the hash table. 
-                That ensures the VM can still find the value if a garbage collection is triggered right in the middle of adding it to the hash table. 
+                Note that we don’t pop the value until after we add it to the hash table.
+                That ensures the VM can still find the value if a garbage collection is triggered right in the middle of adding it to the hash table.
                 That’s a distinct possibility since the hash table requires dynamic allocation when it resizes.
             */
             Value val = READ_CONSTANT();
@@ -270,10 +289,12 @@ static InterpretResult run()
             break;
         }
 
-        case OP_GET_GLOBAL: {
+        case OP_GET_GLOBAL:
+        {
             Value kval = READ_CONSTANT();
             Value value;
-            if (!tableGet(&vm.globals, kval, &value)) {
+            if (!tableGet(&vm.globals, kval, &value))
+            {
                 runtimeError("Undefined variable.");
                 return INTERPRET_RUNTIME_ERROR;
             }

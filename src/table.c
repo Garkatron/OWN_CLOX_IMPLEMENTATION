@@ -72,6 +72,7 @@ https://craftinginterpreters.com/hash-tables.html#hashing-strings:~:text=This%20
 */
 static Entry *findEntry(Entry *entries, int capacity, Value key)
 {
+
     // Gets the hash of the value or creates it
     uint32_t index = VALUE_HASH(key) % capacity;
     Entry *tombstone = NULL;
@@ -79,6 +80,8 @@ static Entry *findEntry(Entry *entries, int capacity, Value key)
     for (;;)
     {
         Entry *entry = &entries[index];
+        printValue(entry->key);
+
         if (IS_NIL(entry->key))
         {
             if (IS_NIL(entry->value))
@@ -101,13 +104,14 @@ static Entry *findEntry(Entry *entries, int capacity, Value key)
 }
 
 bool tableGet(Table *table, Value key, Value *value)
-{
+{   
     if (table->count == 0)
         return false;
 
     Entry *entry = findEntry(table->entries, table->capacity, key);
     if (IS_NIL(entry->key))
         return false;
+
 
     *value = entry->value;
     return true;
@@ -303,5 +307,21 @@ ObjString *tableFindString(Table *table, const char *chars, int length, uint32_t
         }
 
         index = (index + 1) % table->capacity;
+    }
+}
+
+void tablePrintContent(Table *table) {
+    printf("\n");
+    printf("<-----------{ %s }----------->\n", "Table");
+    for (int i = 0; i < table->capacity; i++) {
+        Entry entry = table->entries[i];
+        if (IS_NIL(entry.key)) continue;
+        printf("Key:");
+        printValue(entry.key);
+        printf("\n");
+        printf("Value:");
+        printValue(entry.value);
+        printf("\n");
+
     }
 }

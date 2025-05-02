@@ -35,20 +35,21 @@ void printValue(Value value)
         printf(AS_BOOL(value) ? "TRUE" : "FALSE");
         break;
 
+    case VAL_OBJ:
+        printObject(value);
+        break;
+
     case VAL_NIL:
         printf("NIL");
         break;
 
     case VAL_NUMBER:
+
         printf("%g", AS_NUMBER(value));
         break;
 
-    case VAL_OBJ:
-        printObject(value);
-        break;
-
     default:
-        printf("No value.");
+        printf("Unknown value type: %d", value.type);
         break;
     }
 }
@@ -71,7 +72,14 @@ bool valuesEqual(Value a, Value b)
         return AS_NUMBER(a) == AS_NUMBER(b);
 
     // If both are strings and have the same length checks the characters.
-    case VAL_OBJ: return AS_OBJ(a) == AS_OBJ(b);
+    case VAL_OBJ:
+    {
+        ObjString *aString = AS_STRING(a);
+        ObjString *bString = AS_STRING(b);
+        return aString->length == bString->length &&
+               memcmp(aString->chars, bString->chars,
+                      aString->length) == 0;
+    }
 
     default:
         return false; // Unreachable.

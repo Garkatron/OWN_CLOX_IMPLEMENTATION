@@ -92,13 +92,15 @@ void printObject(Value value)
     switch (OBJ_TYPE(value))
     {
     case OBJ_STRING:
-        printf("%s", AS_CSTRING(value));
+        printf("\"%s\"", AS_CSTRING(value));
         break;
 
     default:
+        printf("Unknown object type: %d", OBJ_TYPE(value));
         break;
     }
 }
+
 
 ObjString *constString(const char *chars, int length)
 {
