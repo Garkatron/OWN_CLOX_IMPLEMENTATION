@@ -85,3 +85,32 @@ bool valuesEqual(Value a, Value b)
         return false; // Unreachable.
     }
 }
+
+bool valuesEqualPointers(Value *a, Value *b)
+{
+    if (a->type != b->type)
+        return false;
+    switch (a->type)
+    {
+    case VAL_BOOL:
+        return a->as.boolean == b->as.boolean;
+    case VAL_NIL:
+        return true;
+
+    case VAL_NUMBER:
+        return a->as.number == b->as.number;
+
+    // If both are strings and have the same length checks the characters.
+    case VAL_OBJ:
+    {
+        ObjString *aString = ((ObjString *)a->as.obj);
+        ObjString *bString = ((ObjString *)b->as.obj);
+        return aString->length == bString->length &&
+               memcmp(aString->chars, bString->chars,
+                      aString->length) == 0;
+    }
+
+    default:
+        return false; // Unreachable.
+    }
+}

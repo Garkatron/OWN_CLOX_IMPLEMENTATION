@@ -283,3 +283,5 @@ https://medium.com/@halukkirkgoz/common-searching-algorithms-in-arrays-in-c-prog
 I used linear search in *makeConstant()*
 
 2.
+[Modified table.h/c to handle cache](./src/table.h)
+[Modified value.h/c to handle pointers in valueEqual function](./src/value.h)
