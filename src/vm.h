@@ -14,6 +14,7 @@ typedef struct
     int stackCapacity;
     Value *stack;    // LIFO PILE
     Value *stackTop; // Points just past the last item
+    Table globals;
     Table strings;
     Obj *objects;    // Objects list
 } VM;

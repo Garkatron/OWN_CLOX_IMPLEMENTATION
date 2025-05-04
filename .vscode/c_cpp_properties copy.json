@@ -1,0 +1,17 @@
+{
+    "configurations": [
+      {
+        "name": "TCC",
+        "includePath": [
+          "${workspaceFolder}/**",
+          "e:/Raiz/Lenguajes/tcc/include"
+        ],
+        "defines": [],
+        "compilerPath": "e:/Raiz/Lenguajes/tcc/tcc.exe",
+        "cStandard": "c11",
+        "intelliSenseMode": "gcc-x64"
+      }
+    ],
+    "version": 4
+  }
+  

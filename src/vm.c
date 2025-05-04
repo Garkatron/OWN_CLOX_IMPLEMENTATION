@@ -7,28 +7,36 @@
 #include "memory.h"
 #include "compiler.h"
 #include "value.h"
+#include "table.h"
 #include <string.h>
 
 VM vm;
 
 static void resetStack()
 {
+    if (vm.stack != NULL) {
+        free(vm.stack);
+    } 
+    vm.stack = ALLOCATE(Value, vm.stackCapacity);
     vm.stackTop = vm.stack;
-    vm.stackCapacity = STACK_MAX;
     vm.stackCount = 0;
 }
+        
 
 static void runtimeError(const char *format, ...)
 {
     va_list args;
     va_start(args, format);
+    fprintf(stderr, "\033[1;31m");
     vfprintf(stderr, format, args);
+    fprintf(stderr, "\033[0m");
     va_end(args);
     fputs("\n", stderr);
 
     size_t instruction = vm.ip - vm.chunk->code - 1;
     int line = vm.chunk->lines[instruction].line;
-    fprintf(stderr, "[line %d] in script\n", line);
+
+    fprintf(stderr, "\033[1;31m[line %d] in script\033[0m\n", line);
     resetStack();
 }
 
@@ -38,25 +46,34 @@ void initVM()
     vm.stackCount = 0;
     resetStack();
     vm.objects = NULL;
+    initTable(&vm.globals);
     initTable(&vm.strings);
 }
 void freeVM()
 {
+    freeTable(&vm.globals);
     freeTable(&vm.strings);
+    free(vm.stack);
     freeObjects();
 }
-
 void push(Value value)
 {
-    vm.stackCount++;
-    if (vm.stackCount > vm.stackCapacity)
-    {
-        int oldCount = vm.stackCapacity;
-        vm.stackCapacity = GROW_CAPACITY(vm.stackCapacity);
-        vm.stack = GROW_ARRAY(Value, &vm.stack, oldCount, vm.stackCount);
+    if (vm.stack == NULL) {
+        fprintf(stderr, "Fatal error: stack not initialized.\n");
+        exit(1);
     }
+    if (vm.stackCount >= vm.stackCapacity)
+    {
+
+        int oldCapacity = vm.stackCapacity;
+        vm.stackCapacity = GROW_CAPACITY(oldCapacity);
+        vm.stack = GROW_ARRAY(Value, vm.stack, oldCapacity, vm.stackCapacity);
+        vm.stackTop = vm.stack + vm.stackCount;
+    }
+
     *vm.stackTop = value;
     vm.stackTop++;
+    vm.stackCount++;
 }
 
 Value pop()
@@ -95,7 +112,6 @@ static void concatenate()
     memcpy(chars, a->chars, a->length);
     memcpy(chars + a->length, b->chars, b->length);
     chars[length] = '\0';
-
     ObjString *result = takeString(chars, length);
     push(OBJ_VAL(result));
 }
@@ -124,6 +140,9 @@ static InterpretResult run()
 {
 #define READ_BYTE() (*vm.ip++)                                    // Next instruction
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()]) // Next byte from bytecode
+#define READ_CONSTANT_LONG() \
+    (vm.chunk->constants.values[(READ_BYTE() << 16) | (READ_BYTE() << 8) | READ_BYTE()])
+#define READ_STRING() AS_STRING(READ_CONSTANT()) // It reads a one-byte operand from the bytecode chunk. It treats that as an index into the chunk’s constant table and returns the string at that index.
     for (;;)
     {
 #define BINARY_OP(valueType, op)                        \
@@ -151,14 +170,11 @@ static InterpretResult run()
         disassembleInstruction(vm.chunk,
                                (int)(vm.ip - vm.chunk->code));
 #endif
-
         uint8_t instruction;
         switch (instruction = READ_BYTE())
         {
         case OP_RETURN:
         {
-            printValue(pop());
-            printf("\n");
             return INTERPRET_OK;
         }
         case OP_CONSTANT:
@@ -167,6 +183,7 @@ static InterpretResult run()
             push(constant);
             break;
         }
+
         case OP_CONSTANT_LONG:
         {
             uint8_t byte1 = READ_BYTE();
@@ -187,6 +204,8 @@ static InterpretResult run()
             push(NUMBER_VAL(-AS_NUMBER(pop())));
             break;
         case OP_ADD:
+        {
+
             if (IS_STRING(peek(0)) && IS_STRING(peek(1)))
             {
                 concatenate();
@@ -203,6 +222,7 @@ static InterpretResult run()
                 return INTERPRET_RUNTIME_ERROR;
             }
             break;
+        }
         case OP_SUBTRACT:
             BINARY_OP(NUMBER_VAL, -);
             break;
@@ -228,6 +248,7 @@ static InterpretResult run()
             break;
         case OP_FALSE:
             push(BOOL_VAL(false));
+            break;
 
         case OP_EQUAL:
         {
@@ -244,8 +265,58 @@ static InterpretResult run()
             BINARY_OP(BOOL_VAL, <);
             break;
 
+        case OP_PRINT:
+        {
+            printValue(pop());
+            printf("\n");
+            break;
+        }
+
+        case OP_POP:
+            pop();
+            break;
+
+        case OP_DEFINE_GLOBAL:
+        {
+            /*
+                Note that we don’t pop the value until after we add it to the hash table.
+                That ensures the VM can still find the value if a garbage collection is triggered right in the middle of adding it to the hash table.
+                That’s a distinct possibility since the hash table requires dynamic allocation when it resizes.
+            */
+            Value val = READ_CONSTANT();
+            tableSet(&vm.globals, val, peek(0));
+            pop();
+            break;
+        }
+
+        case OP_GET_GLOBAL:
+        {
+            Value kval = READ_CONSTANT();
+            Value value;
+            if (!tableGet(&vm.globals, kval, &value))
+            {
+                runtimeError("Undefined variable.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            push(value);
+            break;
+        }
+
+        case OP_SET_GLOBAL: {
+            Value kval = READ_CONSTANT();
+            if (tableSet(&vm.globals, kval, peek(0)))
+            {
+                tableDelete(&vm.globals, &kval);
+                runtimeError("Undefined variable.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            break;
+        }
+
 #undef READ_BYTE
 #undef READ_CONSTANT
+#undef READ_CONSTANT_LONG
+#undef READ_STRING
 #undef BINARY_OP
         }
     }
@@ -264,6 +335,8 @@ InterpretResult interpret(const char *source)
     vm.chunk = &chunk;
     vm.ip = vm.chunk->code;
     InterpretResult result = run();
+    printf("\nDisassembleChunk...\n");
+    disassembleChunk(&chunk, "default");
     freeChunk(&chunk);
     return result;
 }
