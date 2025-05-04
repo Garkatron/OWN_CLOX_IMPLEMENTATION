@@ -33,7 +33,7 @@ typedef enum
     PREC_PRIMARY
 } Precedence;
 
-typedef void (*ParseFn)();
+typedef void (*ParseFn)(bool canAssing);
 
 typedef struct
 {
@@ -230,7 +230,7 @@ for the operator (e.g., OP_ADD for '+', OP_SUBTRACT for '-', etc.).
 This allows multiple binary operators to be handled by a single function using
 dynamic precedence lookup through getRule().
 */
-static void binary()
+static void binary(bool canAssing)
 {
     TokenType operatorType = parser.previous.type;
     ParseRule *rule = getRule(operatorType);
@@ -274,7 +274,7 @@ static void binary()
     }
 }
 
-static void literal()
+static void literal(bool canAssing)
 {
     switch (parser.previous.type)
     {
@@ -294,36 +294,41 @@ static void literal()
 
 // Grouping isn't a back-end useful, it's front-end syntactic sugar.
 // Assuming that the initial ( has been consumed, it calls to expression to compile the expression.
-static void grouping()
+static void grouping(bool canAssing)
 {
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
 // Store a pointer and then emit the constant. Takes the lexeme and conver it to a double value.
-static void number()
+static void number(bool canAssing)
 {
     double value = strtod(parser.previous.start, NULL);
     emitConstant(NUMBER_VAL(value));
 }
 
 // Takes string's characters from lexeme and wraps it in a Value then puts in the constant table.
-static void string()
+static void string(bool canAssing)
 {
     emitConstant(copyString(parser.previous.start + 1, parser.previous.length - 2));
 }
 
-static void namedVariable(Token name) {
+static void namedVariable(Token name, bool canAssing) {
     uint8_t arg = identifierConstant(&name);
-    emitBytes(OP_GET_GLOBAL, arg);
+    if (canAssing && match(TOKEN_EQUAL)) {
+        expression();
+        emitBytes(OP_SET_GLOBAL, arg);
+    } else {
+        emitBytes(OP_GET_GLOBAL, arg);
+    }
 }
 
-static void variable() {
-    namedVariable(parser.previous);
+static void variable(bool canAssing) {
+    namedVariable(parser.previous, canAssing);
 }
 
 // Prefix the expression.
-static void unary()
+static void unary(bool canAssing)
 {
     TokenType operatorType = parser.previous.type;
 
@@ -412,13 +417,17 @@ static void parsePrecedence(Precedence precedence)
         error("Expect expression.");
         return;
     }
-    prefixRule();
+    bool canAssing = precedence <= PREC_ASSIGNMENT;
+    prefixRule(canAssing);
     while (precedence <= getRule(parser.current.type)->precedence)
     {
         advance();
         ParseFn infixRule = getRule(parser.previous.type)->infix;
         if (infixRule != NULL) {
-            infixRule();
+            infixRule(canAssing);
+        }
+        if (canAssing && match(TOKEN_EQUAL)) {
+            error("Invalid assignment target.");
         }
     }
 }

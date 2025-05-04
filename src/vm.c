@@ -302,6 +302,17 @@ static InterpretResult run()
             break;
         }
 
+        case OP_SET_GLOBAL: {
+            Value kval = READ_CONSTANT();
+            if (tableSet(&vm.globals, kval, peek(0)))
+            {
+                tableDelete(&vm.globals, &kval);
+                runtimeError("Undefined variable.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            break;
+        }
+
 #undef READ_BYTE
 #undef READ_CONSTANT
 #undef READ_CONSTANT_LONG
