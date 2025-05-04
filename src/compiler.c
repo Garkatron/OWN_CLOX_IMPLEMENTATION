@@ -168,9 +168,18 @@ static void emitReturn()
 }
 
 // Makes sure that whe don't add more than 256 constant in a chunk.
-
 static uint8_t makeConstant(Value value)
 {
+    // Linear search to avoid duplicate constants in constant pool.
+    Chunk *chunk = currentChunk();
+    for (int i = 0; i < chunk->constants.count; i++)
+    {
+        if (valuesEqual(chunk->constants.values[i], value)) {
+            return (uint8_t) i;
+        }
+    }
+    
+    // Normal behaviour.
     int constant = addConstant(currentChunk(), value);
     if (constant > UINT8_MAX)
     {

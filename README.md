@@ -275,3 +275,11 @@ https://preshing.com/20110603/hash-table-performance-tests/
 https://jacksonallan.github.io/c_cpp_hash_tables_benchmark/
 https://www.hackerearth.com/practice/data-structures/hash-tables/basics-of-hash-tables/tutorial/
 https://www.cs.yale.edu/homes/aspnes/pinewiki/C%282f%29HashTables.html
+
+#### Global Variables
+##### Challenges
+1.
+https://medium.com/@halukkirkgoz/common-searching-algorithms-in-arrays-in-c-programming-0c526f62589f
+I used linear search in *makeConstant()*
+
+2.
