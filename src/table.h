@@ -20,6 +20,8 @@ typedef struct
 {
     int count;
     int capacity;
+    Value *vLast;
+    Value *kLast;
     Entry *entries;
 } Table;
 

@@ -15,6 +15,8 @@ void initTable(Table *table)
     table->count = 0;
     table->capacity = 0;
     table->entries = NULL;
+    table->kLast = NULL;
+    table->vLast = NULL;
 }
 
 void freeTable(Table *table)
@@ -56,13 +58,12 @@ static uint32_t getHash(Value value)
         return AS_BOOL(value) ? 1231 : 1237;
 
     case VAL_NIL:
-        return 2166136261u; 
+        return 2166136261u;
 
     default:
         return 0;
     }
 }
-
 
 /*
 Real core of hash-table.
@@ -103,15 +104,22 @@ static Entry *findEntry(Entry *entries, int capacity, Value key)
     }
 }
 
+// Assings the value of the key in the pointer if it exists in the table.
 bool tableGet(Table *table, Value key, Value *value)
-{   
+{
     if (table->count == 0)
         return false;
+
+    // If lives in cache.
+    if (table->kLast != NULL && valuesEqualPointers(table->kLast, &key))
+    {
+        *value = *table->vLast;
+        return true;
+    }
 
     Entry *entry = findEntry(table->entries, table->capacity, key);
     if (IS_NIL(entry->key))
         return false;
-
 
     *value = entry->value;
     return true;
@@ -124,6 +132,10 @@ to be an empty bucket and then store the array(and its capacity) in the hash tab
 */
 static void adjustCapacity(Table *table, int capacity)
 {
+    // Invalidate cache.
+    table->kLast = NULL;
+    table->vLast = NULL;
+    
     Entry *entries = ALLOCATE(Entry, capacity);
     for (int i = 0; i < capacity; i++)
     {
@@ -157,7 +169,6 @@ bool tableSet(Table *table, Value key, Value value)
         int capacity = GROW_CAPACITY(table->capacity);
         adjustCapacity(table, capacity);
     }
-
     Entry *entry = findEntry(table->entries, table->capacity, key);
     bool isNewKey = IS_NIL(entry->key);
     if (isNewKey && IS_NIL(entry->value))
@@ -167,6 +178,10 @@ bool tableSet(Table *table, Value key, Value value)
 
     entry->key = key;
     entry->value = value;
+
+    table->kLast = &entry->key;
+    table->vLast = &entry->value;
+
     return isNewKey;
 }
 
@@ -174,6 +189,12 @@ bool tableDelete(Table *table, Value *key)
 {
     if (table->count == 0)
         return false;
+
+    if (table->kLast != NULL && valuesEqualPointers(table->kLast, key))
+    {
+        table->vLast = NULL;
+        table->kLast = NULL;
+    }
 
     // Find the entry
     Entry *entry = findEntry(table->entries, table->capacity, *key);
@@ -310,18 +331,20 @@ ObjString *tableFindString(Table *table, const char *chars, int length, uint32_t
     }
 }
 
-void tablePrintContent(Table *table) {
+void tablePrintContent(Table *table)
+{
     printf("\n");
     printf("<-----------{ %s }----------->\n", "Table");
-    for (int i = 0; i < table->capacity; i++) {
+    for (int i = 0; i < table->capacity; i++)
+    {
         Entry entry = table->entries[i];
-        if (IS_NIL(entry.key)) continue;
+        if (IS_NIL(entry.key))
+            continue;
         printf("Key:");
         printValue(entry.key);
         printf("\n");
         printf("Value:");
         printValue(entry.value);
         printf("\n");
-
     }
 }

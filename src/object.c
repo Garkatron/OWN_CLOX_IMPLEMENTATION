@@ -38,12 +38,12 @@ static ObjString *allocateString(char *chars, int length, bool ownsChars, uint32
     string->length = length; // Length of the string.
     string->hash = hash; // Precomputed hash for the string (used for fast lookup).
 
-    /*
+    
     // Step 3: Set the string in the global string table (for tracking or interning strings).
     Value key = OBJ_VAL(string); // The key is the string object itself.
     Value value = NIL_VAL; // No associated value for the string (just tracking it).
     tableSet(&vm.strings, key, value); // Add the string object to the string table.
-    */
+    
     // Step 4: Return the allocated and initialized ObjString.
     return string;
 }
