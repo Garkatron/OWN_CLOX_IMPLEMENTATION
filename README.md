@@ -287,3 +287,4 @@ I used linear search in *makeConstant()*
 [Modified value.h/c to handle pointers in valueEqual function](./src/value.h)
 
 3.
+[vm.h/c added repl flag to convert some error cases in warnings when user is using repl mode](./src/vm.h)
