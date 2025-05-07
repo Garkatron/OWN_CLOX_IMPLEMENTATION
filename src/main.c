@@ -73,6 +73,7 @@ int main(int argc, const char *argv[])
 
    if (argc == 1)
    {
+      vm.replMode = true;
    }
    else if (argc == 2)
    {

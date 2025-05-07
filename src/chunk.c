@@ -40,6 +40,7 @@ void writeChunk(Chunk *chunk, uint8_t byte, int line)
 
         LineInfo l = {line, 1};
         chunk->lines[chunk->lineCount] = l;
+        chunk->lineCount++;
     }
     chunk->count++;
 }
@@ -75,12 +76,12 @@ int getLine(Chunk *chunk, int index)
     for (int i = 0; i < chunk->lineCount; i++)
     {
         counter += chunk->lines[i].count;
-        if (counter >= index)
+        if (index < counter)
         {
             return chunk->lines[i].line;
         }
     }
-    return -1;
+    return -1; 
 }
 
 void freeChunk(Chunk *chunk)

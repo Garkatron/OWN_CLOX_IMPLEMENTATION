@@ -8,6 +8,7 @@
 
 typedef struct
 {
+    bool replMode;
     Chunk *chunk;
     uint8_t *ip;
     int stackCount;

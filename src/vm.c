@@ -22,26 +22,45 @@ static void resetStack()
     vm.stackCount = 0;
 }
         
+static void runtimeWarning(const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    fprintf(stderr, "\033[1;33mWarning: ");
+    vfprintf(stderr, format, args);
+    fprintf(stderr, "\033[0m\n"); 
+
+    va_end(args);
+
+    size_t instruction = vm.ip - vm.chunk->code - 1;
+    int line = getLine(vm.chunk, instruction);
+
+    fprintf(stderr, "\033[1;33m[line %d] in script\033[0m\n", line);
+}
 
 static void runtimeError(const char *format, ...)
 {
+    // Uses args with given format.
     va_list args;
     va_start(args, format);
+    
+    // Prints the the ansi code to paint it in red.
     fprintf(stderr, "\033[1;31m");
-    vfprintf(stderr, format, args);
-    fprintf(stderr, "\033[0m");
-    va_end(args);
-    fputs("\n", stderr);
+    vfprintf(stderr, format, args); // Prints the error.
+    fprintf(stderr, "\033[0m"); // Reset the color.
+    va_end(args); // Clear the args lits.
+    fputs("\n", stderr); // Line Jump.
 
-    size_t instruction = vm.ip - vm.chunk->code - 1;
-    int line = vm.chunk->lines[instruction].line;
+    size_t instruction = vm.ip - vm.chunk->code - 1; // Gets the current instruction.
+    int line = getLine(vm.chunk, instruction); // Gets the line of the instruction.
 
-    fprintf(stderr, "\033[1;31m[line %d] in script\033[0m\n", line);
-    resetStack();
+    fprintf(stderr, "\033[1;31m[line %d] in script\033[0m\n", line); // Prints the line of the error.
+    resetStack(); // Reset the stack.
 }
 
 void initVM()
 {
+    vm.replMode = false;
     vm.stackCapacity = STACK_MAX;
     vm.stackCount = 0;
     resetStack();
@@ -292,11 +311,16 @@ static InterpretResult run()
         case OP_GET_GLOBAL:
         {
             Value kval = READ_CONSTANT();
-            Value value;
+            Value value = NIL_VAL;
             if (!tableGet(&vm.globals, kval, &value))
             {
-                runtimeError("Undefined variable.");
-                return INTERPRET_RUNTIME_ERROR;
+                if (vm.replMode) {
+                    runtimeWarning("Undefined variable.");
+                    push(value);
+                } else {
+                    runtimeError("Undefined variable.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
             }
             push(value);
             break;
