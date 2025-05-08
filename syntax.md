@@ -9,12 +9,10 @@ classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )?
                  "{" function* "}" ;
                  
 statement      → exprStmt
-               | forStmt
-               | ifStmt
                | printStmt
-               | returnStmt
-               | whileStmt
                | block ;
+
+block          → "{" declaration* "}" ;
 
 declaration    → classDecl
                | funDecl
