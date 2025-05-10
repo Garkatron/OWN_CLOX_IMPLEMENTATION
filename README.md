@@ -214,7 +214,6 @@ expression()
                                 └── advance() → 4
                                 └── number()
 ```
-
 2.
 
 + (optional prefix), infix
