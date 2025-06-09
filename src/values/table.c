@@ -2,10 +2,12 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "memory.h"
+#include "common.h"
 #include "object.h"
 #include "table.h"
 #include "value.h"
+#include "hashutils.h"
+#include "memory/memory.h"
 
 #define TABLE_MAX_LOAD 0.75
 #define VALUE_HASH(value) (getHash(value))
@@ -23,18 +25,6 @@ void freeTable(Table *table)
 {
     FREE_ARRAY(Entry, table->entries, table->capacity);
     initTable(table);
-}
-
-static uint32_t hashNumber(const void *data, size_t length)
-{
-    uint32_t hash = 216613621u;
-    const uint8_t *bytes = (const uint8_t *)data;
-    for (int i = 0; i < length; i++)
-    {
-        hash ^= bytes[i];
-        hash *= 16777619;
-    }
-    return hash;
 }
 
 static uint32_t getHash(Value value)

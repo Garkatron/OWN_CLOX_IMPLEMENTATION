@@ -243,4 +243,27 @@ void FUNC(HASHMAP_NAME, debugPrint)(HASHMAP_NAME *map)
     }
 }
 
+int FUNC(HASHMAP_NAME, count)(HASHMAP_NAME *map)
+{
+    int count = 0;
+    for (int i = 0; i < map->capacity; i++)
+    {
+        MAKE_ENTRY(HASHMAP_NAME) entry = map->entries[i];
+        if (entry.key && entry.value)
+            count++;
+    }
+    return count;
+}
+HASHMAP_NAME* FUNC(HASHMAP_NAME, new)(
+    uint32_t (*hashFunc)(const void *),
+    bool (*equalsFunc)(const void *, const void *),
+    void (*freeKey)(void *),
+    void (*freeValue)(void *)
+) {
+    HASHMAP_NAME* map = malloc(sizeof(HASHMAP_NAME));
+    FUNC(HASHMAP_NAME, init)(map, hashFunc, equalsFunc, freeKey, freeValue);
+    return map;
+}
+
+
 #endif // HASHMAP_IMPL_H

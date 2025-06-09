@@ -9,13 +9,6 @@
 #include "value.h"
 
 
-#define HASHMAP_NAME ValueMap
-#define KEY_TYPE Value*
-#define VALUE_TYPE Value*
-#define HASH_FUNC vhashValue
-#define EQUALS_FUNC vequal
-#include "hashmap_impl.h"
-
 static void repl()
 {
    char line[1024];

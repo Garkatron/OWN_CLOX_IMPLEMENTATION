@@ -3,6 +3,8 @@
 
 #include "value.h"
 
+typedef struct ValueMap ValueMap;
+
 
 void vfreeKey(void *key);
 void vfreeValue(void *value);

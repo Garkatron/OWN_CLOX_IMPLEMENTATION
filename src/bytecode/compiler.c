@@ -1,58 +1,47 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "common.h"
 #include "compiler.h"
 #include "scanner.h"
-#include <string.h>
+#include "hashutils.h"
 
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
 #endif
 
-typedef struct
-{
-    Token current;
-    Token previous;
-    bool hadError;  // Flag to alert an error.
-    bool panicMode; // Flag to enter in panic mode and re-sync the parser with the code.
-} Parser;
+// ? Scope hashmap
 
-// Lowest to highest precedence.
-typedef enum
-{
-    PREC_NONE,
-    PREC_ASSIGNMENT, // =
-    PREC_TERNARY,
-    PREC_OR,         // or
-    PREC_AND,        // and
-    PREC_EQUALITY,   // == !=
-    PREC_COMPARISON, // < > <= >=
-    PREC_TERM,       // + -
-    PREC_FACTOR,     // * /
-    PREC_UNARY,      // ! -
-    PREC_CALL,       // . ()
-    PREC_PRIMARY
-} Precedence;
+static bool tokenEqual(const void *a_ptr, const void *b_ptr) {
+    const Token *a = (const Token *)a_ptr;
+    const Token *b = (const Token *)b_ptr;
 
-typedef void (*ParseFn)(bool canAssing);
+    if (a->type != b->type) return false;
 
-typedef struct
-{
-    ParseFn prefix;
-    ParseFn infix;
-    Precedence precedence;
-} ParseRule;
+    if (a->length != b->length) return false;
+    return memcmp(a->start, b->start, a->length) == 0;
+}
+
+void freeTokenKey(void *key) {
+    Token *token = (Token *)key;
+    free(token);
+}
+
+#include "value_hashmap.h"
+#define HASHMAP_NAME Scope
+#define KEY_TYPE Token*
+#define VALUE_TYPE void*
+#define HASH_FUNC hashToken
+#define EQUALS_FUNC tokenEqual
+#include "hashmap_impl.h"
+
+
+// ?
+
 
 typedef struct
 {
-    Token name;
-    int depth;
-} Local;
-
-typedef struct
-{
-    Local locals[UINT8_COUNT];
-    int localCount;
+    Scope* scopes;
     int scopeDepth;
 } Compiler;
 
@@ -213,7 +202,7 @@ static void emitConstant(Value value)
 
 static void initCompiler(Compiler *compiler)
 {
-    compiler->localCount = 0;
+    compiler->scopes = 0;
     compiler->scopeDepth = 0;
     current = compiler;
 }
@@ -228,9 +217,12 @@ static void endCompiler()
     }
 #endif
 }
+
 static void beginScope()
 {
     current->scopeDepth++;
+    Scope* newScope = Scope_new(hashToken, tokenEqual, freeTokenKey, );  
+    current->scopes[current->scopeDepth] = newScope;
 }
 
 static void endScope()
@@ -274,6 +266,7 @@ static int resolveLocal(Compiler* compiler, Token* name) {
             return i;
         }
     }
+
 }
 
 static void addLocal(Token name)
