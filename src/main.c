@@ -5,6 +5,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "value_hashmap.h"
+#include "value.h"
+
+
+#define HASHMAP_NAME ValueMap
+#define KEY_TYPE Value*
+#define VALUE_TYPE Value*
+#define HASH_FUNC vhashValue
+#define EQUALS_FUNC vequal
+#include "hashmap_impl.h"
 
 static void repl()
 {
@@ -87,5 +97,6 @@ int main(int argc, const char *argv[])
    }
 
    freeVM();
+
    return 0;
 }

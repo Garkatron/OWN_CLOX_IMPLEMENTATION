@@ -1,0 +1,48 @@
+#ifndef clox_hashmap_h
+#define clox_hashmap_h
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stddef.h>
+
+// Key/Value pair
+typedef struct {
+    void *key;
+    void *value;
+} HashEntry;
+
+// Hash map struct
+typedef struct {
+    int count;
+    int capacity;
+    void *vLast;
+    void *kLast;
+    HashEntry *entries;
+
+    // Function pointers
+    uint32_t (*hashFunc)(const void *key);
+    bool (*equalsFunc)(const void *a, const void *b);
+    void (*freeKey)(void *key);
+    void (*freeValue)(void *value);
+} HashMap;
+
+// Public API
+void initHashMap(HashMap *map,
+                 uint32_t (*hashFunc)(const void *),
+                 bool (*equalsFunc)(const void *, const void *),
+                 void (*freeKey)(void *),
+                 void (*freeValue)(void *));
+
+void freeHashMap(HashMap *map);
+
+bool hashMapSet(HashMap *map, void *key, void *value);
+bool hashMapGet(HashMap *map, const void *key, void **valueOut);
+bool hashMapDelete(HashMap *map, const void *key);
+
+void hashMapPrint(HashMap *map);
+
+uint32_t intHash(const void *ptr);
+bool intEquals(const void *a, const void *b);
+void freeInt(void *ptr);
+
+#endif

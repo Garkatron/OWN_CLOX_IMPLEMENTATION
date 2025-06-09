@@ -59,7 +59,7 @@ int disassembleInstruction(Chunk *chunk, int offset)
     }
     else
     {
-        printf("%4d ", chunk->lines[offset]);
+        printf("%4d ", chunk->lines[offset].line);
     }
 
     uint8_t instruction = chunk->code[offset];
