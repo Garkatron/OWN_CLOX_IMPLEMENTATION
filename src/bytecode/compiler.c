@@ -27,10 +27,15 @@ void freeTokenKey(void *key) {
     free(token);
 }
 
+void freeBool(void* v) {
+    free(v);
+    v = NULL;
+}
+
 #include "value_hashmap.h"
 #define HASHMAP_NAME Scope
 #define KEY_TYPE Token*
-#define VALUE_TYPE void*
+#define VALUE_TYPE bool
 #define HASH_FUNC hashToken
 #define EQUALS_FUNC tokenEqual
 #include "hashmap_impl.h"
@@ -221,7 +226,7 @@ static void endCompiler()
 static void beginScope()
 {
     current->scopeDepth++;
-    Scope* newScope = Scope_new(hashToken, tokenEqual, freeTokenKey, );  
+    Scope* newScope = Scope_new(hashToken, tokenEqual, freeTokenKey, freeBool);  
     current->scopes[current->scopeDepth] = newScope;
 }
 
