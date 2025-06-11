@@ -730,11 +730,29 @@ static void forStatement() {
     }
 
     int loopStart = currentChunk()->count;
-    consume(TOKEN_SEMICOLON, "Expect ';'.");
+    int exitJump = -1;
+
+    if (!match(TOKEN_SEMICOLON)) {
+        expression();
+        consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.");
+
+        // Jump out of the loop if the condition is false.
+        exitJump = emitJump(OP_JUMP_IF_FALSE);
+        emitByte(OP_POP);
+    }
+
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
 
     statement();
     emitLoop(loopStart);
+
+    // Since the jump leaves the value on the stack, we pop it before executing the body. That ensures we discard the value when the condition is true.
+    // We do this only when there is a condition clause.
+    if (exitJump != -1) {
+        patchJump(exitJump);
+        emitByte(OP_POP);
+    }
+
     endScope();
 }
 
