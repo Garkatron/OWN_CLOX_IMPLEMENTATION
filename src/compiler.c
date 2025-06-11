@@ -34,7 +34,7 @@ typedef enum
     PREC_PRIMARY
 } Precedence;
 
-typedef void (*ParseFn)(bool canAssing);
+typedef void (*ParseFn)(bool canAssign);
 
 typedef struct
 {
@@ -360,6 +360,17 @@ static void defineVariable(uint8_t global)
     emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
+// Evaluate the first condition, if false, jumps the right hand expression. 
+// Otherwise, discards left expression and evaluates the right-hand expression.
+static void and_(bool canAssign) {
+    int endJump = emitJump(OP_JUMP_IF_FALSE);
+    
+    emitByte(OP_POP);
+    parsePrecedence(PREC_AND);
+
+    patchJump(endJump);
+}
+
 /*
 Compiles a binary operation expression.
 
@@ -373,7 +384,7 @@ for the operator (e.g., OP_ADD for '+', OP_SUBTRACT for '-', etc.).
 This allows multiple binary operators to be handled by a single function using
 dynamic precedence lookup through getRule().
 */
-static void binary(bool canAssing)
+static void binary(bool canAssign)
 {
     TokenType operatorType = parser.previous.type;
     ParseRule *rule = getRule(operatorType);
@@ -417,7 +428,7 @@ static void binary(bool canAssing)
     }
 }
 
-static void literal(bool canAssing)
+static void literal(bool canAssign)
 {
     switch (parser.previous.type)
     {
@@ -437,26 +448,40 @@ static void literal(bool canAssing)
 
 // Grouping isn't a back-end useful, it's front-end syntactic sugar.
 // Assuming that the initial ( has been consumed, it calls to expression to compile the expression.
-static void grouping(bool canAssing)
+static void grouping(bool canAssign)
 {
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
 // Store a pointer and then emit the constant. Takes the lexeme and conver it to a double value.
-static void number(bool canAssing)
+static void number(bool canAssign)
 {
     double value = strtod(parser.previous.start, NULL);
     emitConstant(NUMBER_VAL(value));
 }
 
-// Takes string's characters from lexeme and wraps it in a Value then puts in the constant table.
-static void string(bool canAssing)
+/*
+if the left-hand side is truthy, then we skip over the right operand.
+When the left-hand side is falsey, it does a tiny jump over the next statement. 
+*/
+static void or_(bool canAssign)
 {
+    int elseJump = emitJump(OP_JUMP_IF_FALSE);
+    int endJump = emitJump(OP_JUMP);
+    
+    patchJump(elseJump);
+    emitByte(OP_POP);
+
+    parsePrecedence(PREC_OR);
+    patchJump(endJump);
+}
+// Takes string's characters from lexeme and wraps it in a Value then puts in the constant table.
+static void string(bool canAssign) {
     emitConstant(copyString(parser.previous.start + 1, parser.previous.length - 2));
 }
 
-static void namedVariable(Token name, bool canAssing)
+static void namedVariable(Token name, bool canAssign)
 {
     uint8_t getOp, setOp;
     uint8_t arg = resolveLocal(current, &name);
@@ -471,7 +496,7 @@ static void namedVariable(Token name, bool canAssing)
         getOp = OP_GET_GLOBAL;
         setOp = OP_SET_GLOBAL;
     }
-    if (canAssing && match(TOKEN_EQUAL))
+    if (canAssign && match(TOKEN_EQUAL))
     {
         expression();
         emitBytes(setOp, (uint8_t)arg);
@@ -482,13 +507,13 @@ static void namedVariable(Token name, bool canAssing)
     }
 }
 
-static void variable(bool canAssing)
+static void variable(bool canAssign)
 {
-    namedVariable(parser.previous, canAssing);
+    namedVariable(parser.previous, canAssign);
 }
 
 // Prefix the expression.
-static void unary(bool canAssing)
+static void unary(bool canAssign)
 {
     TokenType operatorType = parser.previous.type;
 
@@ -544,7 +569,7 @@ ParseRule rules[] = {
     [TOKEN_IDENTIFIER] = {variable, NULL, PREC_NONE},
     [TOKEN_STRING] = {string, NULL, PREC_NONE},
     [TOKEN_NUMBER] = {number, NULL, PREC_NONE},
-    [TOKEN_AND] = {NULL, NULL, PREC_NONE},
+    [TOKEN_AND] = {NULL, and_, PREC_AND},
     [TOKEN_CLASS] = {NULL, NULL, PREC_NONE},
     [TOKEN_ELSE] = {NULL, NULL, PREC_NONE},
     [TOKEN_FALSE] = {literal, NULL, PREC_NONE},
@@ -552,7 +577,7 @@ ParseRule rules[] = {
     [TOKEN_FUN] = {NULL, NULL, PREC_NONE},
     [TOKEN_IF] = {NULL, NULL, PREC_NONE},
     [TOKEN_NIL] = {literal, NULL, PREC_NONE},
-    [TOKEN_OR] = {NULL, NULL, PREC_NONE},
+    [TOKEN_OR] = {NULL, or_, PREC_NONE},
     [TOKEN_PRINT] = {NULL, NULL, PREC_NONE},
     [TOKEN_RETURN] = {NULL, NULL, PREC_NONE},
     [TOKEN_SUPER] = {NULL, NULL, PREC_NONE},
@@ -577,17 +602,17 @@ static void parsePrecedence(Precedence precedence)
         error("Expect expression.");
         return;
     }
-    bool canAssing = precedence <= PREC_ASSIGNMENT;
-    prefixRule(canAssing);
+    bool canAssign = precedence <= PREC_ASSIGNMENT;
+    prefixRule(canAssign);
     while (precedence <= getRule(parser.current.type)->precedence)
     {
         advance();
         ParseFn infixRule = getRule(parser.previous.type)->infix;
         if (infixRule != NULL)
         {
-            infixRule(canAssing);
+            infixRule(canAssign);
         }
-        if (canAssing && match(TOKEN_EQUAL))
+        if (canAssign && match(TOKEN_EQUAL))
         {
             error("Invalid assignment target.");
         }
