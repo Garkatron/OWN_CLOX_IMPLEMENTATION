@@ -14,21 +14,23 @@ VM vm;
 
 static void resetStack()
 {
-    if (vm.stack != NULL) {
+    if (vm.stack != NULL)
+    {
         free(vm.stack);
-    } 
+    }
     vm.stack = ALLOCATE(Value, vm.stackCapacity);
     vm.stackTop = vm.stack;
     vm.stackCount = 0;
 }
-        
-static void runtimeWarning(const char *format, ...) {
+
+static void runtimeWarning(const char *format, ...)
+{
     va_list args;
     va_start(args, format);
 
     fprintf(stderr, "\033[1;33mWarning: ");
     vfprintf(stderr, format, args);
-    fprintf(stderr, "\033[0m\n"); 
+    fprintf(stderr, "\033[0m\n");
 
     va_end(args);
 
@@ -43,19 +45,19 @@ static void runtimeError(const char *format, ...)
     // Uses args with given format.
     va_list args;
     va_start(args, format);
-    
+
     // Prints the the ansi code to paint it in red.
     fprintf(stderr, "\033[1;31m");
     vfprintf(stderr, format, args); // Prints the error.
-    fprintf(stderr, "\033[0m"); // Reset the color.
-    va_end(args); // Clear the args lits.
-    fputs("\n", stderr); // Line Jump.
+    fprintf(stderr, "\033[0m");     // Reset the color.
+    va_end(args);                   // Clear the args lits.
+    fputs("\n", stderr);            // Line Jump.
 
     size_t instruction = vm.ip - vm.chunk->code - 1; // Gets the current instruction.
-    int line = getLine(vm.chunk, instruction); // Gets the line of the instruction.
+    int line = getLine(vm.chunk, instruction);       // Gets the line of the instruction.
 
     fprintf(stderr, "\033[1;31m[line %d] in script\033[0m\n", line); // Prints the line of the error.
-    resetStack(); // Reset the stack.
+    resetStack();                                                    // Reset the stack.
 }
 
 void initVM()
@@ -77,7 +79,8 @@ void freeVM()
 }
 void push(Value value)
 {
-    if (vm.stack == NULL) {
+    if (vm.stack == NULL)
+    {
         fprintf(stderr, "Fatal error: stack not initialized.\n");
         exit(1);
     }
@@ -159,6 +162,8 @@ static InterpretResult run()
 {
 #define READ_BYTE() (*vm.ip++)                                    // Next instruction
 #define READ_CONSTANT() (vm.chunk->constants.values[READ_BYTE()]) // Next byte from bytecode
+#define READ_SHORT() \
+    (vm.ip += 2, (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]))
 #define READ_CONSTANT_LONG() \
     (vm.chunk->constants.values[(READ_BYTE() << 16) | (READ_BYTE() << 8) | READ_BYTE()])
 #define READ_STRING() AS_STRING(READ_CONSTANT()) // It reads a one-byte operand from the bytecode chunk. It treats that as an index into the chunk’s constant table and returns the string at that index.
@@ -314,10 +319,13 @@ static InterpretResult run()
             Value value = NIL_VAL;
             if (!tableGet(&vm.globals, kval, &value))
             {
-                if (vm.replMode) {
+                if (vm.replMode)
+                {
                     runtimeWarning("Undefined variable.");
                     push(value);
-                } else {
+                }
+                else
+                {
                     runtimeError("Undefined variable.");
                     return INTERPRET_RUNTIME_ERROR;
                 }
@@ -326,7 +334,8 @@ static InterpretResult run()
             break;
         }
 
-        case OP_SET_GLOBAL: {
+        case OP_SET_GLOBAL:
+        {
             Value kval = READ_CONSTANT();
             if (tableSet(&vm.globals, kval, peek(0)))
             {
@@ -336,18 +345,34 @@ static InterpretResult run()
             }
             break;
         }
-        case OP_GET_LOCAL: {
+        case OP_GET_LOCAL:
+        {
             uint8_t slot = READ_BYTE();
             push(vm.stack[slot]);
             break;
         }
-        case OP_SET_LOCAL: {
+        case OP_SET_LOCAL:
+        {
             uint8_t slot = READ_BYTE();
             vm.stack[slot] = peek(0);
             break;
         }
+        case OP_JUMP:
+        {
+            uint16_t offset = READ_SHORT();
+            vm.ip += offset;
+            break;
+        }
+        case OP_JUMP_IF_FALSE:
+        {
+            uint16_t offset = READ_SHORT();
+            if (isFalsey(peek(0)))
+                vm.ip += offset;
+            break;
+        }
 
 #undef READ_BYTE
+#undef READ_SHORT
 #undef READ_CONSTANT
 #undef READ_CONSTANT_LONG
 #undef READ_STRING
