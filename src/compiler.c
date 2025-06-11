@@ -185,6 +185,19 @@ static void emitBytes(uint8_t byte1, uint8_t byte2)
     emitByte(byte2);
 }
 
+// Unconditionally jumps over a start point. Like a emitJump() and patchJump() combined.
+// The + 2 is to take into account the size of the OP_LOOP instruction’s own operands which we also need to jump over.
+static void emitLoop(int loopStart) {
+    emitByte(OP_LOOP);
+    
+    int offset = currentChunk()->count - loopStart + 2;
+    if (offset > UINT16_MAX) error("Loop body too large.");
+
+    emitByte((offset >> 8) & 0xFF);
+    emitByte(offset & 0xFF);
+
+}
+
 static void emitReturn()
 {
     emitByte(OP_RETURN);
@@ -360,11 +373,12 @@ static void defineVariable(uint8_t global)
     emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
-// Evaluate the first condition, if false, jumps the right hand expression. 
+// Evaluate the first condition, if false, jumps the right hand expression.
 // Otherwise, discards left expression and evaluates the right-hand expression.
-static void and_(bool canAssign) {
+static void and_(bool canAssign)
+{
     int endJump = emitJump(OP_JUMP_IF_FALSE);
-    
+
     emitByte(OP_POP);
     parsePrecedence(PREC_AND);
 
@@ -463,13 +477,13 @@ static void number(bool canAssign)
 
 /*
 if the left-hand side is truthy, then we skip over the right operand.
-When the left-hand side is falsey, it does a tiny jump over the next statement. 
+When the left-hand side is falsey, it does a tiny jump over the next statement.
 */
 static void or_(bool canAssign)
 {
     int elseJump = emitJump(OP_JUMP_IF_FALSE);
     int endJump = emitJump(OP_JUMP);
-    
+
     patchJump(elseJump);
     emitByte(OP_POP);
 
@@ -477,7 +491,8 @@ static void or_(bool canAssign)
     patchJump(endJump);
 }
 // Takes string's characters from lexeme and wraps it in a Value then puts in the constant table.
-static void string(bool canAssign) {
+static void string(bool canAssign)
+{
     emitConstant(copyString(parser.previous.start + 1, parser.previous.length - 2));
 }
 
@@ -714,8 +729,8 @@ static void ifStatement()
     int elseJump = emitJump(OP_JUMP);
     patchJump(thenJump);
     emitByte(OP_POP);
-    if (match(TOKEN_ELSE)) statement();
-
+    if (match(TOKEN_ELSE))
+        statement();
 }
 
 static void printStatement()
@@ -723,6 +738,21 @@ static void printStatement()
     expression();
     consume(TOKEN_SEMICOLON, "Expect ';' after value.");
     emitByte(OP_PRINT);
+}
+
+static void whileStatement() {
+    int loopStart = currentChunk()->count;
+    consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+
+    int exitJump = emitJump(OP_JUMP_IF_FALSE);
+    emitByte(OP_POP);
+    statement();
+    emitLoop(loopStart);
+
+    patchJump(exitJump);
+    emitByte(OP_POP);
 }
 
 static void statement()
@@ -734,6 +764,10 @@ static void statement()
     else if (match(TOKEN_IF))
     {
         ifStatement();
+    }
+    else if (match(TOKEN_WHILE))
+    {
+        whileStatement();
     }
     else if (match(TOKEN_LEFT_BRACE))
     {
