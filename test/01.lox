@@ -1,4 +1,6 @@
 
-if (true) {
-    print "aa";
+var a = 1;
+while (true) {
+    a = a + 1;
 }
+print a;

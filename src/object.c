@@ -21,6 +21,14 @@ static Obj *allocateObject(size_t size, ObjType type)
     return object;
 }
 
+ObjFunction* newFunction() {
+    ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);
+    function->arity = 0;
+    function->name = NULL;
+    initChunk(&function->chunk);
+    return function;
+}
+
 /*
 It allocates an object of the given size on the heap. Note that the size is not just the size of Obj itself. The caller passes in the number of bytes so that there is room for the extra payload fields needed by the specific object type being created.
 
@@ -86,6 +94,9 @@ Value copyString(const char *chars, int length) {
     return OBJ_VAL(str);
 }
 
+static void printFunction(ObjFunction* function) {
+    printf("<fn %s>", function->name->chars);
+}
 
 void printObject(Value value)
 {
@@ -93,6 +104,9 @@ void printObject(Value value)
     {
     case OBJ_STRING:
         printf("\"%s\"", AS_CSTRING(value));
+        break;
+    case OBJ_FUNCTION:
+        printFunction(AS_FUNCTION(value));
         break;
 
     default:

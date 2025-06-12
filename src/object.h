@@ -3,15 +3,19 @@
 
 #include "common.h"
 #include "value.h"
+#include "chunk.h"
 
 #define OBJ_TYPE(value) (AS_OBJ(value)->type)
 #define IS_STRING(value) isObjType(value, OBJ_STRING)
+#define IS_FUNCTION(value) isObjType(value, OBJ_FUNCTION)
 
+#define AS_FUNCTION(value) ((ObjFunction*)AS_OBJ(value))
 #define AS_STRING(value) ((ObjString *)AS_OBJ(value))
 #define AS_CSTRING(value) (AS_STRING(value)->chars)
 
 typedef enum
 {
+    OBJ_FUNCTION,
     OBJ_STRING,
 } ObjType;
 
@@ -30,8 +34,16 @@ struct ObjString
     char *chars;
 };
 
-ObjString *
-takeString(char *chars, int length);
+typedef struct {
+    Obj obj;
+    int arity;
+    Chunk chunk;
+    ObjString* name;
+} ObjFunction;
+
+
+ObjFunction* newFunction();
+ObjString *takeString(char *chars, int length);
 
 Value copyString(const char *chars, int length);
 ObjString *constString(const char *chars, int length);

@@ -36,9 +36,19 @@ static void freeObject(Obj *object)
         {
             FREE(ObjString, object);
         }
+        break;
     }
-
-    break;
+    case OBJ_FUNCTION: {
+        /*
+        This switch case is responsible for freeing the ObjFunction itself as well as any other memory it owns. 
+        Functions own their chunk, so we call Chunk’s destructor-like function.
+        */
+        ObjFunction* function = (ObjFunction*)object;
+        freeChunk(&function->chunk);
+        FREE(ObjFunction, object);
+        break;
+    }
+    
 
     default:
         break;
