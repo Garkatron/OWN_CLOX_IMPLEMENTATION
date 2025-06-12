@@ -312,6 +312,7 @@ static int resolveLocal(Compiler *compiler, Token *name)
             return i;
         }
     }
+    return -1;
 }
 
 static void addLocal(Token name)
@@ -650,7 +651,7 @@ static void expression()
 
 static void block()
 {
-    while (!check(TOKEN_LEFT_BRACE) && !check(TOKEN_EOF))
+    while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF))
     {
         declaration();
     }
