@@ -49,8 +49,16 @@ typedef struct
     int depth;
 } Local;
 
+typedef enum {
+    TYPE_FUNCTION,
+    TYPE_SCRIPT
+} FunctionType;
+
 typedef struct
 {
+    ObjFunction* function;
+    FunctionType type;
+
     Local locals[UINT8_COUNT];
     int localCount;
     int scopeDepth;
@@ -63,7 +71,7 @@ Chunk *compilingChunk;
 // Returns the current compiling chunk.
 static Chunk *currentChunk()
 {
-    return compilingChunk;
+    return &current->function->chunk;
 }
 
 /*
