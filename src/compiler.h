@@ -5,6 +5,6 @@
 #include "object.h"
 
 // Given source code, it compiles it by writing bytes into the chunk.
-bool compile(const char *source, Chunk *Chunk);
+ObjFunction* compile(const char *source);
 
 #endif
