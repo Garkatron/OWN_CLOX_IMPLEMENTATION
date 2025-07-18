@@ -54,8 +54,10 @@ typedef enum {
     TYPE_SCRIPT
 } FunctionType;
 
+
 typedef struct
 {
+    struct Compiler* enclosing;
     ObjFunction* function;
     FunctionType type;
 
@@ -139,10 +141,8 @@ static void advance()
         errorAtCurrent(parser.current.start);
     }
 }
-
-/*
-Reads the next token and validates that token has expected type. If not, it reports an error.
-*/
+// ! https://craftinginterpreters.com/calls-and-functions.html#a-stack-of-compilers
+// Reads the next token and validates that token has expected type. If not, it reports an error.
 static void consume(TokenType type, const char *message)
 {
     if (parser.current.type == type)
@@ -258,6 +258,7 @@ static void emitConstant(Value value)
 static void initCompiler(Compiler *compiler, FunctionType type)
 {
     // I know, it looks dumb to null the function field only to immediately assign it a value a few lines later. More garbage collection-related paranoia.
+    compiler->enclosing = current;
     compiler->function = NULL;
     compiler->type = type;
     compiler->localCount = 0;
@@ -281,6 +282,7 @@ static ObjFunction* endCompiler()
         disassembleChunk(currentChunk(), function->name != NULL ? function->name->chars : "<script>");
     }
 #endif
+    current = current->enclosing;
     return function;
 }
 static void beginScope()
