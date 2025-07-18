@@ -7,6 +7,7 @@
 #include "object.h"
 #include "table.h"
 
+
 // Avoids redundantly cast to a void*.
 #define ALLOCATE_OBJ(type, objectType) \
     (type *)allocateObject(sizeof(type), objectType)

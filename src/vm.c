@@ -36,7 +36,7 @@ static void runtimeWarning(const char *format, ...)
 
     CallFrame* frame = &vm.frames[vm.frameCount - 1];
     size_t instruction = frame->ip - frame->function->chunk.code - 1;
-    int line = getLine(frame->function->chunk.lines,instruction);
+    int line = getLine(&frame->function->chunk,instruction);
 
     fprintf(stderr, "\033[1;33m[line %d] in script\033[0m\n", line);
 }
@@ -56,7 +56,7 @@ static void runtimeError(const char *format, ...)
 
     CallFrame* frame = &vm.frames[vm.frameCount - 1];
     size_t instruction = frame->ip - frame->function->chunk.code - 1;
-    int line = getLine(frame->function->chunk.lines,instruction);
+    int line = getLine(&frame->function->chunk,instruction);
 
     fprintf(stderr, "\033[1;31m[line %d] in script\033[0m\n", line); // Prints the line of the error.
     resetStack();                                                    // Reset the stack.

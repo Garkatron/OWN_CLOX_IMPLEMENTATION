@@ -1,6 +1,5 @@
-
-var a = 1;
-while (true) {
-    a = a + 1;
+fun areWeHavingItYet() {
+  print "Yes we are!";
 }
-print a;
+
+print areWeHavingItYet;

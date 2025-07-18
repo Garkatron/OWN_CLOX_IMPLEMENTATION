@@ -2,7 +2,6 @@
 #define clox_memory_h
 
 #include "common.h"
-#include "object.h"
 
 // Allocates an array on the heap.
 #define ALLOCATE(type, count) \
