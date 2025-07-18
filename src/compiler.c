@@ -399,6 +399,22 @@ static void defineVariable(uint8_t global)
     emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
+static uint8_t argumentList() {
+    uint8_t argCount = 0;
+    if (!check(TOKEN_RIGHT_PAREN)) {
+        do
+        {
+            expression();
+            if(argCount==255) {
+                error("Can't have more than 255 arguments.");
+            }
+            argCount++;
+        } while (match(TOKEN_COMMA));
+    }
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
+    return argCount;
+}
+
 // Evaluate the first condition, if false, jumps the right hand expression.
 // Otherwise, discards left expression and evaluates the right-hand expression.
 static void and_(bool canAssign)
@@ -466,6 +482,11 @@ static void binary(bool canAssign)
     default:
         return; // Unreachable.
     }
+}
+
+static void call(bool canAssing) {
+    uint8_t argCount = argumentList();
+    emitBytes(OP_CALL, argCount);
 }
 
 static void literal(bool canAssign)
@@ -587,7 +608,7 @@ static void ternary()
 }
 
 ParseRule rules[] = {
-    [TOKEN_LEFT_PAREN] = {grouping, NULL, PREC_NONE},
+    [TOKEN_LEFT_PAREN] = {grouping, NULL, PREC_CALL},
     [TOKEN_RIGHT_PAREN] = {NULL, NULL, PREC_NONE},
     //  [TOKEN_INTERROGATION_OPEN] = {NULL, ternary, PREC_TERNARY}
     [TOKEN_LEFT_BRACE] = {NULL, NULL, PREC_NONE},
