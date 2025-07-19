@@ -54,11 +54,26 @@ static void runtimeError(const char *format, ...)
     va_end(args);                   // Clear the args lits.
     fputs("\n", stderr);            // Line Jump.
 
-    CallFrame* frame = &vm.frames[vm.frameCount - 1];
+    for (int i = vm.frameCount - 1; i >= 0; i--)
+    {
+        CallFrame* frame = &vm.frames[i];
+        ObjFunction* function = frame->function;
+        size_t instruction = frame->ip - function->chunk.code - 1;
+        fprintf(stderr, "[line %d] in ", function->chunk.lines[instruction]);
+        if (function->name = NULL) {
+            fprintf(stderr, "script\n");
+        } else {
+            fprintf(stderr, "%s()\n", function->name->chars);
+        }
+    }
+    
+
+    /*CallFrame* frame = &vm.frames[vm.frameCount - 1];
     size_t instruction = frame->ip - frame->function->chunk.code - 1;
     int line = getLine(&frame->function->chunk,instruction);
 
     fprintf(stderr, "\033[1;31m[line %d] in script\033[0m\n", line); // Prints the line of the error.
+    */
     resetStack();                                                    // Reset the stack.
 }
 
