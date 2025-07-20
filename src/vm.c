@@ -41,6 +41,7 @@ static void runtimeWarning(const char *format, ...)
     fprintf(stderr, "\033[1;33m[line %d] in script\033[0m\n", line);
 }
 
+// ! https://craftinginterpreters.com/calls-and-functions.html#returning-from-functions
 static void runtimeError(const char *format, ...)
 {
     // Uses args with given format.
@@ -259,7 +260,16 @@ static InterpretResult run()
         {
         case OP_RETURN:
         {
-            return INTERPRET_OK;
+            Value result = pop();
+            vm.frameCount--;
+            if (vm.frameCount == 0) {
+                pop();
+                return INTERPRET_OK;
+            }
+            vm.stackTop = frame->slots;
+            push(result);
+            frame = &vm.frames[vm.frameCount - 1];
+            break;
         }
         case OP_CONSTANT:
         {

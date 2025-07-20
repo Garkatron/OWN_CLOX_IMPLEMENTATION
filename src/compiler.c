@@ -208,6 +208,7 @@ static void emitLoop(int loopStart)
 
 static void emitReturn()
 {
+    emitByte(OP_NIL);
     emitByte(OP_RETURN);
 }
 
