@@ -1,7 +1,9 @@
-fun test() {
-  print("test");
-  return "teta";
+var x = "global";
+fun outer() {
+  var x = "outer";
+  fun inner() {
+    print x;
+  }
+  inner();
 }
-
-var t = test();
-print(t);
+outer();
