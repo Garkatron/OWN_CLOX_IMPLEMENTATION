@@ -8,6 +8,7 @@ typedef enum
 {
     OP_LOOP,
     OP_CALL,
+    OP_CLOSURE,
     OP_JUMP,
     OP_JUMP_IF_FALSE,
     OP_NIL,
