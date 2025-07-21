@@ -38,6 +38,10 @@ static void freeObject(Obj *object)
         }
         break;
     }
+    case OBJ_NATIVE: {
+        FREE(ObjNative, object);
+        break;
+    }
     case OBJ_FUNCTION: {
         /*
         This switch case is responsible for freeing the ObjFunction itself as well as any other memory it owns. 

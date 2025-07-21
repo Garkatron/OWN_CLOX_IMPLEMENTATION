@@ -9,6 +9,7 @@
 #include "value.h"
 #include "table.h"
 #include <string.h>
+#include <time.h>
 
 VM vm;
 
@@ -78,6 +79,19 @@ static void runtimeError(const char *format, ...)
     resetStack();                                                    // Reset the stack.
 }
 
+static void defineNative(const char* name, NativeFn function) {
+    push(copyString(name, (int)strlen(name)));
+    push(OBJ_VAL(newNative(function)));
+    tableSet(&vm.globals, vm.stack[0], vm.stack[1]);
+    pop();
+    pop();
+}
+
+static Value clockNative(int argCount, Value* args) {
+    return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
+}
+
+
 void initVM()
 {
     vm.replMode = false;
@@ -87,6 +101,8 @@ void initVM()
     vm.objects = NULL;
     initTable(&vm.globals);
     initTable(&vm.strings);
+
+    defineNative("clock", clockNative);
 }
 void freeVM()
 {
@@ -163,7 +179,14 @@ static bool callValue(Value callee, int argCount) {
         {
         case OBJ_FUNCTION:
             return call(AS_FUNCTION(callee), argCount);
-        
+        case OBJ_NATIVE: {
+            NativeFn native = AS_NATIVE(callee);
+            Value result = native(argCount, vm.stackTop - argCount);
+            vm.stackTop -= argCount + 1;
+            push(result);
+            return true;
+        }
+
         default:
             break; // Non-Callable object type.
         }
@@ -210,6 +233,7 @@ void modifyCurrent(Value value)
     Value *current = vm.stackTop - 1;
     *current = value;
 }
+
 
 // The beating hearth of the VM...
 // The most performance cost stuff occurs here.
