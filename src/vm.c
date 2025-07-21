@@ -179,7 +179,7 @@ static bool call(ObjClosure *closure, int argCount)
     }
 
     CallFrame *frame = &vm.frames[vm.frameCount++];
-    frame->function = closure->function;
+    frame->closure->function = closure->function;
     frame->ip = closure->function->chunk.code;
     frame->slots = vm.stackTop - argCount - 1;
     return true;
