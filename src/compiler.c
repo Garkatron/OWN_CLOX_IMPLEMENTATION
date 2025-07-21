@@ -57,7 +57,7 @@ typedef enum {
 
 typedef struct Compiler Compiler;
 struct Compiler {
-    Compiler* enclosing;
+    struct Compiler* enclosing;
     ObjFunction* function;
     FunctionType type;
     Local locals[UINT8_COUNT];
@@ -406,10 +406,10 @@ static uint8_t argumentList() {
         do
         {
             expression();
-            if(argCount==255) {
+            argCount++;
+            if(argCount == 255) {
                 error("Can't have more than 255 arguments.");
             }
-            argCount++;
         } while (match(TOKEN_COMMA));
     }
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after arguments.");
@@ -547,7 +547,7 @@ static void string(bool canAssign)
 static void namedVariable(Token name, bool canAssign)
 {
     uint8_t getOp, setOp;
-    uint8_t arg = resolveLocal(current, &name);
+    int arg = resolveLocal(current, &name);
     if (arg != -1)
     {
         getOp = OP_GET_LOCAL;
@@ -609,7 +609,7 @@ static void ternary()
 }
 
 ParseRule rules[] = {
-    [TOKEN_LEFT_PAREN] = {grouping, NULL, PREC_CALL},
+    [TOKEN_LEFT_PAREN] = {grouping, call, PREC_CALL},
     [TOKEN_RIGHT_PAREN] = {NULL, NULL, PREC_NONE},
     //  [TOKEN_INTERROGATION_OPEN] = {NULL, ternary, PREC_TERNARY}
     [TOKEN_LEFT_BRACE] = {NULL, NULL, PREC_NONE},
@@ -874,6 +874,7 @@ static void ifStatement()
     emitByte(OP_POP);
     if (match(TOKEN_ELSE))
         statement();
+    patchJump(elseJump);
 }
 
 static void printStatement()
@@ -926,6 +927,8 @@ static void statement()
     else if (match(TOKEN_IF))
     {
         ifStatement();
+    } else if (match(TOKEN_RETURN)) {
+        returnStatement();
     }
     else if (match(TOKEN_WHILE))
     {

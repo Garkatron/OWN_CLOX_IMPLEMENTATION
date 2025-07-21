@@ -37,7 +37,7 @@ typedef struct
 #define AS_NUMBER(value) ((value).as.number)
 #define AS_OBJ(value) ((value).as.obj)
 
-// Takes a C value of the appropiate type and produces a Value with the correct ype tag and contains the underlying value.
+// Takes a C value of the appropiate type and produces a Value with the correct type tag and contains the underlying value.
 #define BOOL_VAL(value) ((Value){VAL_BOOL, {.boolean = value}})
 #define NIL_VAL ((Value){VAL_NIL, {.number = 0}})
 #define NUMBER_VAL(value) ((Value){VAL_NUMBER, {.number = value}})

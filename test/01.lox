@@ -1,4 +1,7 @@
 fun test() {
-  print "test";
-  test();
+  print("test");
+  return "teta";
 }
+
+var t = test();
+print(t);
