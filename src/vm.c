@@ -36,8 +36,8 @@ static void runtimeWarning(const char *format, ...)
     va_end(args);
 
     CallFrame *frame = &vm.frames[vm.frameCount - 1];
-    size_t instruction = frame->ip - frame->function->chunk.code - 1;
-    int line = getLine(&frame->function->chunk, instruction);
+    size_t instruction = frame->ip - frame->closure->function->chunk.code - 1;
+    int line = getLine(&frame->closure->function->chunk, instruction);
 
     fprintf(stderr, "\033[1;33m[line %d] in script\033[0m\n", line);
 }
@@ -59,7 +59,7 @@ static void runtimeError(const char *format, ...)
     for (int i = vm.frameCount - 1; i >= 0; i--)
     {
         CallFrame *frame = &vm.frames[i];
-        ObjFunction *function = frame->function;
+        ObjFunction *function = frame->closure->function;
         size_t instruction = frame->ip - function->chunk.code - 1;
         fprintf(stderr, "[line %d] in ", function->chunk.lines[instruction]);
         if (function->name = NULL)
@@ -163,12 +163,12 @@ This function Avoid this.
 var notAFunction = 123;
 notAFunction();
 */
-static bool call(ObjFunction *function, int argCount)
+static bool call(ObjClosure *closure, int argCount)
 {
 
-    if (argCount != function->arity)
+    if (argCount != closure->function->arity)
     {
-        runtimeError("Expected %d arguments but got %d.", function->arity, argCount);
+        runtimeError("Expected %d arguments but got %d.", closure->function->arity, argCount);
         return false;
     }
 
@@ -179,8 +179,8 @@ static bool call(ObjFunction *function, int argCount)
     }
 
     CallFrame *frame = &vm.frames[vm.frameCount++];
-    frame->function = function;
-    frame->ip = function->chunk.code;
+    frame->function = closure->function;
+    frame->ip = closure->function->chunk.code;
     frame->slots = vm.stackTop - argCount - 1;
     return true;
 }
@@ -191,8 +191,8 @@ static bool callValue(Value callee, int argCount)
     {
         switch (OBJ_TYPE(callee))
         {
-        case OBJ_FUNCTION:
-            return call(AS_FUNCTION(callee), argCount);
+        /*case OBJ_FUNCTION:
+            return call(AS_FUNCTION(callee), argCount);*/
 
         case OBJ_NATIVE:
         {
@@ -202,7 +202,8 @@ static bool callValue(Value callee, int argCount)
             push(result);
             return true;
         }
-
+        case OBJ_CLOSURE:
+            return call(AS_CLOSURE(callee), argCount);
         default:
             break; // Non-Callable object type.
         }
@@ -259,12 +260,12 @@ static InterpretResult run()
     CallFrame *frame = &vm.frames[vm.frameCount - 1];
 #define READ_BYTE() (*frame->ip++)
 #define READ_CONSTANT() \
-    (frame->function->chunk.constants.values[READ_BYTE()]) // Next byte from bytecode
+    (frame->closure->function->chunk.constants.values[READ_BYTE()]) // Next byte from bytecode
 #define READ_SHORT() \
     (frame->ip += 2, \
      (uint16_t)((frame->ip[-2] << 8) | frame->ip[-1]))
 #define READ_CONSTANT_LONG() \
-    (frame->function->chunk.constants.values[(uint32_t)((READ_BYTE() << 16) | (READ_BYTE() << 8) | READ_BYTE())])
+    (frame->closure->function->chunk.constants.values[(uint32_t)((READ_BYTE() << 16) | (READ_BYTE() << 8) | READ_BYTE())])
 #define READ_STRING() AS_STRING(READ_CONSTANT()) // It reads a one-byte operand from the bytecode chunk. It treats that as an index into the chunk’s constant table and returns the string at that index.
     for (;;)
     {
@@ -290,8 +291,8 @@ static InterpretResult run()
             printf(" ]");
         }
         printf("\n");
-        disassembleInstruction(&frame->function->chunk,
-                               (int)(frame->ip - frame->function->chunk.code));
+        disassembleInstruction(&frame->closure->function->chunk,
+                               (int)(frame->ip - frame->closure->function->chunk.code));
 #endif
         uint8_t instruction;
         switch (instruction = READ_BYTE())
@@ -491,6 +492,12 @@ static InterpretResult run()
             frame = &vm.frames[vm.frameCount - 1];
             break;
         }
+        case OP_CLOSURE: {
+            ObjFunction* function = AS_FUNCTION(READ_CONSTANT());
+            ObjClosure* closure = newClosure(function);
+            push(OBJ_VAL(closure));
+            break;
+        }
 
 #undef READ_BYTE
 #undef READ_SHORT
@@ -508,10 +515,10 @@ InterpretResult interpret(const char *source)
     if (function == NULL)
         return INTERPRET_COMPILE_ERROR;
     push(OBJ_VAL(function));
-    CallFrame *frame = &vm.frames[vm.frameCount++];
-    /*frame->function = function;
-    frame->ip = function->chunk.code;
-    frame->slots = vm.stack;*/
-    call(function, 0);
+    ObjClosure* closure = newClosure(function);
+    pop();
+    push(OBJ_VAL(closure));
+    // CallFrame *frame = &vm.frames[vm.frameCount++];
+    call(closure, 0);
     return run();
 }
