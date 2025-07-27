@@ -22,6 +22,8 @@ static void resetStack()
     vm.stack = ALLOCATE(Value, vm.stackCapacity);
     vm.stackTop = vm.stack;
     vm.stackCount = 0;
+    vm.openUpvalues = NULL;
+
 }
 
 static void runtimeWarning(const char *format, ...)
@@ -213,7 +215,28 @@ static bool callValue(Value callee, int argCount)
 }
 
 static ObjUpvalue* captureUpvalue(Value* local) {
+    ObjUpvalue* prevUpvalue = NULL;
+    ObjUpvalue* upvalue = vm.openUpvalues;
+    
+    while (upvalue != NULL && upvalue->location > local)
+    {
+        prevUpvalue = upvalue;
+        upvalue = upvalue->next;
+    }
+
+    if (upvalue != NULL && upvalue->location == local) {
+        return upvalue;
+    }
+
     ObjUpvalue* createdUpvalue = newUpvalue(local);
+
+    createdUpvalue->next = upvalue;
+    if (prevUpvalue == NULL) {
+        vm.openUpvalues = createdUpvalue;
+    } else {
+        prevUpvalue->next = createdUpvalue;
+    }
+
     return createdUpvalue;
 }
 

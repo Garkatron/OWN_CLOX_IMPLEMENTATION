@@ -27,6 +27,7 @@ typedef struct
     Value *stackTop; // Points just past the last item
     Table globals;
     Table strings;
+    ObjUpvalue* openUpvalues;
     Obj *objects;    // Objects list
 } VM;
 
