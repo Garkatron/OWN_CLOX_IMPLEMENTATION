@@ -6,6 +6,7 @@
 
 typedef enum
 {
+    OP_CLOSE_UPVALUE,
     OP_LOOP,
     OP_CALL,
     OP_CLOSURE,

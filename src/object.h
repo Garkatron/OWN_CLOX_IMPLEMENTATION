@@ -46,12 +46,6 @@ typedef struct ObjUpvalue {
     Value* location;
 } ObjUpvalue;  
 
-typedef struct
-{
-    Obj obj;
-    ObjFunction* function;
-} ObjClosure;
-
 
 typedef struct {
     Obj obj;
@@ -60,6 +54,16 @@ typedef struct {
     Chunk chunk;
     ObjString* name;
 } ObjFunction;
+
+typedef struct
+{
+    Obj obj;
+    ObjFunction* function;
+    ObjUpvalue** upvalues;
+    int upvalueCount;
+} ObjClosure;
+
+
 
 typedef Value(*NativeFn)(int argCount, Value* args);
 typedef struct {
