@@ -588,6 +588,7 @@ static InterpretResult run()
         }
         }
     }
+}
 
     InterpretResult interpret(const char *source)
     {
