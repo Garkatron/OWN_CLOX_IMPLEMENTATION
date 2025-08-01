@@ -590,16 +590,16 @@ static InterpretResult run()
     }
 }
 
-    InterpretResult interpret(const char *source)
-    {
-        ObjFunction *function = compile(source);
-        if (function == NULL)
-            return INTERPRET_COMPILE_ERROR;
-        push(OBJ_VAL(function));
-        ObjClosure *closure = newClosure(function);
-        pop();
-        push(OBJ_VAL(closure));
-        // CallFrame *frame = &vm.frames[vm.frameCount++];
-        call(closure, 0);
-        return run();
-    }
+InterpretResult interpret(const char *source)
+{
+    ObjFunction *function = compile(source);
+    if (function == NULL)
+        return INTERPRET_COMPILE_ERROR;
+    push(OBJ_VAL(function));
+    ObjClosure *closure = newClosure(function);
+    pop();
+    push(OBJ_VAL(closure));
+    // CallFrame *frame = &vm.frames[vm.frameCount++];
+    call(closure, 0);
+    return run();
+}

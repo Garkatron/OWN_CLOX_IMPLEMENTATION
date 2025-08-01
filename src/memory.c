@@ -4,6 +4,10 @@
 
 void *reallocate(void *pointer, size_t oldSize, size_t newSize)
 {
+    #ifdef DEBUG_STRESS_GC
+        collectGarbage();
+    #endif
+
     if (newSize == 0)
     {
         free(pointer);
@@ -66,6 +70,10 @@ static void freeObject(Obj *object)
     default:
         break;
     }
+}
+
+void collectGarbage() {
+
 }
 
 void freeObjects()
