@@ -331,6 +331,16 @@ ObjString *tableFindString(Table *table, const char *chars, int length, uint32_t
     }
 }
 
+void markTable(Table* table) {
+    for (int i = 0; i < table->capacity; i++)
+    {
+        Entry* entry = &table->entries[i];
+        markObject((Obj*)AS_OBJ(entry->key)); // ! https://craftinginterpreters.com/garbage-collection.html#marking-the-roots:~:text=We%20implement%20that%20in%20the%20%E2%80%9Ctable%E2%80%9D%20module%20here%3A
+        markValue(entry->value);
+    }
+    
+}
+
 void tablePrintContent(Table *table)
 {
     printf("\n");
