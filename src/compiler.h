@@ -6,5 +6,6 @@
 
 // Given source code, it compiles it by writing bytes into the chunk.
 ObjFunction* compile(const char *source);
+void markCompilerRoots();
 
 #endif
