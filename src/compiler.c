@@ -1028,3 +1028,4 @@ void markCompilerRoots() {
     }
     
 }
+// https://craftinginterpreters.com/garbage-collection.html#tracing-object-references
