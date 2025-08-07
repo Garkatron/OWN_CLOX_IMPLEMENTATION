@@ -331,6 +331,18 @@ ObjString *tableFindString(Table *table, const char *chars, int length, uint32_t
     }
 }
 
+void tableRemoveWhite(Table* table) {
+    for (int i = 0; i < table->capacity; i++)
+    {
+        Entry* entry = &table->entries[i];
+        // ! MAYBE AN ERROR
+        if (!IS_NIL(entry->value) != NULL && AS_OBJ(entry->key)->isMarked) {
+            tableDelete(table, &entry->key);
+        }
+    }
+    
+}
+
 void markTable(Table* table) {
     for (int i = 0; i < table->capacity; i++)
     {
